@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./apps/commons/custom_widgets/Cargo.toml",
+        "./apps/commons/custom_widgets/Cargo.toml"
+    ]
+}
