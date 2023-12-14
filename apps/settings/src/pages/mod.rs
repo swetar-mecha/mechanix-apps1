@@ -17,3 +17,4 @@ pub mod settings_page;
 pub mod sound_page;
 pub mod security_page;
 pub mod lock_timeout_page;
+pub mod battery_page;

@@ -11,7 +11,7 @@ use crate::{
         custom_list_item::{
             CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
         },
-        menu_item::{MenuItem, MenuItemSettings, Message as MenuItemMessage},
+        menu_item::{MenuItem, MenuItemSettings, Message as MenuItemMessage}, 
     },
 };
 
@@ -25,12 +25,12 @@ pub struct Settings {
 }
 
 //Model
-pub struct DisplayPage {
+pub struct BatteryPage {
     settings: Settings,
 }
 
 //Widgets
-pub struct DisplayPageWidgets {}
+pub struct BatteryPageWidgets {}
 
 //Messages
 #[derive(Debug)]
@@ -38,6 +38,7 @@ pub enum Message {
     MenuItemPressed(String),
     BackPressed,
     ScreenTimeoutOpted,
+    PerformanceOpted
 }
 
 pub struct SettingItem {
@@ -46,12 +47,12 @@ pub struct SettingItem {
     end_icon: Option<String>,
 }
 
-impl SimpleComponent for DisplayPage {
+impl SimpleComponent for BatteryPage {
     type Init = Settings;
     type Input = Message;
     type Output = Message;
     type Root = gtk::Box;
-    type Widgets = DisplayPageWidgets;
+    type Widgets = BatteryPageWidgets;
 
     fn init_root() -> Self::Root {
         gtk::Box::builder()
@@ -70,12 +71,12 @@ impl SimpleComponent for DisplayPage {
         let widget_configs = init.widget_configs.clone();
 
         let header_title = gtk::Label::builder()
-            .label("Display")
+            .label("Battery")
             .css_classes(["header-title"])
             .build();
 
         let header_icon = get_image_from_path(
-            modules.pages_settings.display.display_icon.clone(),
+            modules.pages_settings.battery.display_icon.clone(),
             &["header-icon"],
         );
 
@@ -87,27 +88,20 @@ impl SimpleComponent for DisplayPage {
         header.append(&header_icon);
         header.append(&header_title);
 
-        let brigntness_label = gtk::Label::builder()
-            .label("Brigtness")
+        let battery_label = gtk::Label::builder()
+            .label("Battery Percentage")
             .halign(gtk::Align::Start)
             .build();
 
-        let brigtness_scale = gtk::Scale::builder()
-            .draw_value(true)
-            .adjustment(
-                &gtk::Adjustment::builder()
-                    .lower(0.0)
-                    .upper(100.0)
-                    .value(50.0)
-                    .step_increment(10.0)
-                    .page_increment(10.0)
-                    .build(),
-            )
-            .orientation(gtk::Orientation::Horizontal)
-            .value_pos(gtk::PositionType::Right)
-            .build();
+        let battery_percentage_level = gtk::LevelBar::builder()
+        .min_value(0.0)
+        .max_value(100.0)
+        .value(70.0)
+        .orientation(gtk::Orientation::Horizontal) 
+        .css_classes(["custom-levelbar"])
+        .build();
 
-        let brigtness_items = gtk::Box::builder()
+        let battery_items = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
 
@@ -119,24 +113,41 @@ impl SimpleComponent for DisplayPage {
             })
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
-                println!("DISPLAY PAGE - SCREEN clicked {:?}", msg);
+                println!("BATTERY PAGE - SCREEN clicked {:?}", msg);
                 match msg { 
                     CustomListItemMessage::WidgetClicked => Message::ScreenTimeoutOpted,
                 }
             });
 
         let screen_off_timeout_widget = screen_off_timeout.widget();
-        brigtness_items.append(&brigtness_scale);
-        brigtness_items.append(screen_off_timeout_widget);
-        // brigtness_items.append(&screen_off_timeout_widget.clone());
+
+        let battery_performance_mode = CustomListItem::builder()
+        .launch(CustomListItemSettings {
+            start_icon: None,
+            text: "Performance Mode".to_string(),
+            end_icon: widget_configs.menu_item.end_icon.clone(),
+        })
+        .forward(sender.input_sender(), |msg| {
+            info!("msg is {:?}", msg);
+            match msg {
+                CustomListItemMessage::WidgetClicked => Message::PerformanceOpted,
+            }
+        });
+        let battery_performance_mode_widget = battery_performance_mode.widget();
+
+
+        battery_items.append(&battery_percentage_level);
+        battery_items.append(screen_off_timeout_widget);
+        battery_items.append(battery_performance_mode_widget);
+        // battery_items.append(&screen_off_timeout_widget.clone());
 
         root.append(&header);
 
         let scrollable_content = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
-        scrollable_content.append(&brigntness_label);
-        scrollable_content.append(&brigtness_items);
+        scrollable_content.append(&battery_label);
+        scrollable_content.append(&battery_items);
 
         let scrolled_window = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
@@ -182,15 +193,15 @@ impl SimpleComponent for DisplayPage {
 
         root.append(&footer);
 
-        let model = DisplayPage { settings: init };
+        let model = BatteryPage { settings: init };
 
-        let widgets = DisplayPageWidgets {};
+        let widgets = BatteryPageWidgets {};
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
-        info!("dispay msg - Update message is {:?}", message);
+        info!("battery page - msg - Update message is {:?}", message);
         match message {
             Message::MenuItemPressed(key) => {}
             Message::BackPressed => {
@@ -198,6 +209,9 @@ impl SimpleComponent for DisplayPage {
             }
             Message::ScreenTimeoutOpted => {
                 let _ = sender.output(Message::ScreenTimeoutOpted);
+            }
+            Message::PerformanceOpted => {
+                let _ = sender.output(Message::PerformanceOpted);
             }
         }
     }

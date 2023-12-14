@@ -29,6 +29,7 @@ use pages::{
         Settings as ConnectNetworkPageSettings,
     },
     display_page::{DisplayPage, Message as DisplayPageMessage, Settings as DisplayPageSettings},
+    battery_page::{BatteryPage, Message as BatteryPageMessage, Settings as BatteryPageSettings},
     home::{HomePage, Message as HomePageMessage, Settings as HomePageSettings},
     lock_timeout_page::{
         LockTimeoutPage, Message as LockTimeoutPageMessage, Settings as LockTimeoutPageSettings,
@@ -72,10 +73,10 @@ use pages::{
     },
     sound_page::{Message as SoundPageMessage, Settings as SoundPageSettings, SoundPage},
 };
-use tracing::{error, info};
+use settings::LockScreenSettings;
+use tracing::info;
 pub mod errors;
 
-use crate::settings::LockScreenSettings;
 use crate::theme::LockScreenTheme;
 
 /// # LockScreen State
@@ -102,6 +103,7 @@ struct LockScreen {
     performance_mode_page: Controller<PerformanceModePage>,
     security_page: Controller<SecurityPage>,
     lock_timeout_page: Controller<LockTimeoutPage>,
+    battery_page: Controller<BatteryPage>,
 }
 
 #[derive(Debug, Clone)]
@@ -126,6 +128,7 @@ pub enum Screens {
     PerformanceMode,
     Security,
     LockTimeout,
+    Battery,
 }
 
 impl fmt::Display for Screens {
@@ -151,6 +154,7 @@ impl fmt::Display for Screens {
             Screens::Settings => write!(f, "settings"),
             Screens::Security => write!(f, "security"),
             Screens::LockTimeout => write!(f, "lock_timeout"),
+            Screens::Battery => write!(f, "battery"),
         }
     }
 }
@@ -556,7 +560,8 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-                       DisplayPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                        DisplayPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                        DisplayPageMessage::ScreenTimeoutOpted => Message::ChangeScreen(Screens::ScreenTimeout),
                         _ => Message::Dummy
                     }
                 }),
@@ -565,6 +570,30 @@ impl SimpleComponent for LockScreen {
         screens_stack.add_named(
             display_page.widget(),
             Option::from(Screens::Display.to_string().as_str()),
+        );
+
+        let battery_page: Controller<BatteryPage> = BatteryPage::builder()
+            .launch(BatteryPageSettings {
+                modules: modules.clone(),
+                layout: layout.clone(),
+                widget_configs: widget_configs.clone()
+            })
+            .forward(
+                sender.input_sender(),
+                clone!(@strong modules => move|msg| {
+                    info!("battery_page - auth page message to parent {:?}", msg);
+                    match msg {
+                        BatteryPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                        BatteryPageMessage::ScreenTimeoutOpted => Message::ChangeScreen(Screens::ScreenTimeout),
+                        BatteryPageMessage::PerformanceOpted => Message::ChangeScreen(Screens::PerformanceMode),
+                        _ => Message::Dummy
+                    }
+                }),
+            );
+
+        screens_stack.add_named(
+            battery_page.widget(),
+            Option::from(Screens::Battery.to_string().as_str()),
         );
 
         let screen_timeout_page: Controller<ScreenTimeoutPage> = ScreenTimeoutPage::builder()
@@ -578,7 +607,8 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-ScreenTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                        ScreenTimeoutPageMessage::BackPressed => Message::ChangeScreen(Screens::Display),
+                        ScreenTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
                 }),
@@ -600,8 +630,9 @@ ScreenTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::Lock
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-                       SoundPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
-                        _ => Message::Dummy
+                        SoundPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                        SoundPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                            _ => Message::Dummy
                     }
                 }),
             );
@@ -622,6 +653,7 @@ ScreenTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::Lock
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
+                        PerformanceModePageMessage::BackPressed => Message::ChangeScreen(Screens::Battery),
                        PerformanceModePageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
@@ -707,6 +739,7 @@ LockTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockSc
             performance_mode_page,
             security_page,
             lock_timeout_page,
+            battery_page,
         };
 
         let widgets = AppWidgets { screens_stack };

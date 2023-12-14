@@ -564,3 +564,13 @@ background: rgba(0, 0, 0, 0.6);
     line-height: normal; 
     font-size: 18px; 
 }
+
+.custom-levelbar {
+    min-height: 20px;
+    min-width: 20px; /* Adjust as needed */
+    margin: 30px 0px;
+}
+
+/* .custom-levelbar:active{
+    background-color:  #34C759;
+} */

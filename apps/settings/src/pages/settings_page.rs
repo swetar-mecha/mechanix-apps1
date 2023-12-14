@@ -187,7 +187,20 @@ impl SimpleComponent for SettingsPage {
                     let _ = sender
                         .output_sender()
                         .send(OutputMessage::ChangeScreen(Screens::ManageBluetooth));
+                } else if menu_item.to_lowercase() == "display" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::Display));
+                } else if menu_item.to_lowercase() == "sound" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::Sound));
+                } else if menu_item.to_lowercase() == "battery" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::Battery));
                 }
+
             }
             InputMessage::BackPressed => {}
         }
