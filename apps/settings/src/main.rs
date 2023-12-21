@@ -34,6 +34,9 @@ use pages::{
     lock_timeout_page::{
         LockTimeoutPage, Message as LockTimeoutPageMessage, Settings as LockTimeoutPageSettings,
     },
+    reset_pin_page::{
+        ResetPinPage, Message as ResetPinPageMessage, Settings as ResetPinPageSettings,
+    },
     manage_bluetooth_page::{
         ManageBluetoothPage, Message as ManageBluetoothPageMessage,
         Settings as ManageBluetoothPageSettings,
@@ -72,11 +75,22 @@ use pages::{
         OutputMessage as SettingsPageMessage, Settings as SettingsPageSettings, SettingsPage,
     },
     sound_page::{Message as SoundPageMessage, Settings as SoundPageSettings, SoundPage},
+    date_time_page::{
+        Message as DateTimePageMessage, DateTimePage, Settings as DateTimePageSettings,
+    },
+    set_time_page::{
+        Message as SetTimePageMessage, SetTimePage, Settings as SetTimePageSettings,
+    },
+    set_date_page::{
+        Message as SetDatePageMessage, SetDatePage, Settings as SetDatePageSettings,
+    },
+    about_page::{
+        Message as AboutPageMessage, AboutPage, Settings as AboutPageSettings,
+    }
 };
 use settings::LockScreenSettings;
 use tracing::info;
 pub mod errors;
-
 use crate::theme::LockScreenTheme;
 
 /// # LockScreen State
@@ -104,6 +118,11 @@ struct LockScreen {
     security_page: Controller<SecurityPage>,
     lock_timeout_page: Controller<LockTimeoutPage>,
     battery_page: Controller<BatteryPage>,
+    reset_pin_page: Controller<ResetPinPage>,
+    date_time_page: Controller<DateTimePage>,
+    set_time_page: Controller<SetTimePage>,
+    set_date_page: Controller<SetDatePage>,
+    about_page: Controller<AboutPage>,
 }
 
 #[derive(Debug, Clone)]
@@ -129,6 +148,11 @@ pub enum Screens {
     Security,
     LockTimeout,
     Battery,
+    ResetPin,
+    DateTime,
+    SetTime,
+    SetDate,
+    About
 }
 
 impl fmt::Display for Screens {
@@ -155,6 +179,11 @@ impl fmt::Display for Screens {
             Screens::Security => write!(f, "security"),
             Screens::LockTimeout => write!(f, "lock_timeout"),
             Screens::Battery => write!(f, "battery"),
+            Screens::ResetPin => write!(f, "reset_pin"),
+            Screens::DateTime => write!(f, "date_time"),
+            Screens::SetTime => write!(f, "set_time"), 
+            Screens::SetDate => write!(f, "set_date"), 
+            Screens::About => write!(f, "about")
         }
     }
 }
@@ -665,7 +694,6 @@ impl SimpleComponent for LockScreen {
             Option::from(Screens::PerformanceMode.to_string().as_str()),
         );
 
-        // // security
         let security_page: Controller<SecurityPage> = SecurityPage::builder()
         .launch(SecurityPageSettings {
             modules: modules.clone(),
@@ -675,9 +703,11 @@ impl SimpleComponent for LockScreen {
         .forward(
             sender.input_sender(),
             clone!(@strong modules => move|msg| {
-                info!("auth page message to parent {:?}", msg);
+                info!("security_page - auth page message to parent {:?}", msg);
                 match msg {
-                   SecurityPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                    SecurityPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                    SecurityPageMessage::LockTimeoutOpted => Message::ChangeScreen(Screens::LockTimeout),
+                    SecurityPageMessage::ResetPinOpted => Message::ChangeScreen(Screens::ResetPin),
                     _ => Message::Dummy
                 }
             }),
@@ -699,7 +729,8 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-LockTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                            LockTimeoutPageMessage::BackPressed => Message::ChangeScreen(Screens::Security),
+                            LockTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
                 }),
@@ -709,6 +740,123 @@ LockTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockSc
             lock_timeout_page.widget(),
             Option::from(Screens::LockTimeout.to_string().as_str()),
         );
+
+        let reset_pin_page:Controller<ResetPinPage> = ResetPinPage::builder()
+        .launch(ResetPinPageSettings {
+            modules: modules.clone(),
+            layout: layout.clone(),
+            widget_configs: widget_configs.clone()
+        })
+        .forward(
+            sender.input_sender(),
+            clone!(@strong modules => move|msg| {
+                info!("auth page message to parent {:?}", msg);
+                match msg {
+                   ResetPinPageMessage::BackPressed => Message::ChangeScreen(Screens::Security),
+                   ResetPinPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                    _ => Message::Dummy
+                }
+            }),
+        );
+
+        screens_stack.add_named(
+            reset_pin_page.widget(),
+            Option::from(Screens::ResetPin.to_string().as_str()),
+        );
+
+
+        let date_time_page: Controller<DateTimePage> = DateTimePage::builder()
+        .launch(DateTimePageSettings {
+            modules: modules.clone(),
+            layout: layout.clone(),
+            widget_configs: widget_configs.clone()
+        })
+        .forward(
+            sender.input_sender(),
+            clone!(@strong modules => move|msg| {
+                info!("date_time_page - auth page message to parent {:?}", msg);
+                match msg {
+                    DateTimePageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                    DateTimePageMessage::SetTimeOpted => Message::ChangeScreen(Screens::SetTime),
+                    DateTimePageMessage::SetDateOpted => Message::ChangeScreen(Screens::SetDate),
+                    _ => Message::Dummy
+                }
+            }),
+        );
+
+        screens_stack.add_named(
+            date_time_page.widget(),
+            Option::from(Screens::DateTime.to_string().as_str()),
+        );
+
+        
+        let set_time_page:Controller<SetTimePage> = SetTimePage::builder()
+        .launch(SetTimePageSettings {
+            modules: modules.clone(),
+            layout: layout.clone(),
+            widget_configs: widget_configs.clone()
+        })
+        .forward(
+            sender.input_sender(),
+            clone!(@strong modules => move|msg| {
+                info!("auth page message to parent {:?}", msg);
+                match msg {
+                   SetTimePageMessage::BackPressed => Message::ChangeScreen(Screens::DateTime),
+                   SetTimePageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                    _ => Message::Dummy
+                }
+            }),
+        );
+        screens_stack.add_named(
+            set_time_page.widget(),
+            Option::from(Screens::SetTime.to_string().as_str()),
+        );
+
+
+        let set_date_page:Controller<SetDatePage> = SetDatePage::builder()
+        .launch(SetDatePageSettings {
+            modules: modules.clone(),
+            layout: layout.clone(),
+            widget_configs: widget_configs.clone()
+        })
+        .forward(
+            sender.input_sender(),
+            clone!(@strong modules => move|msg| {
+                info!("auth page message to parent {:?}", msg);
+                match msg {
+                   SetDatePageMessage::BackPressed => Message::ChangeScreen(Screens::DateTime),
+                   SetDatePageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                    _ => Message::Dummy
+                }
+            }),
+        );
+        screens_stack.add_named(
+            set_date_page.widget(),
+            Option::from(Screens::SetDate.to_string().as_str()),
+        );
+
+
+        let about_page:Controller<AboutPage> = AboutPage::builder()
+        .launch(AboutPageSettings {
+            modules: modules.clone(),
+            layout: layout.clone(),
+            widget_configs: widget_configs.clone()
+        })
+        .forward(
+            sender.input_sender(),
+            clone!(@strong modules => move|msg| {
+                info!("auth page message to parent {:?}", msg);
+                match msg {
+                   AboutPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                    _ => Message::Dummy
+                }
+            }),
+        );
+        screens_stack.add_named(
+            about_page.widget(),
+            Option::from(Screens::About.to_string().as_str()),
+        );
+
 
         let current_screen = Screens::Settings;
 
@@ -740,6 +888,11 @@ LockTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockSc
             security_page,
             lock_timeout_page,
             battery_page,
+            reset_pin_page,
+            date_time_page,
+            set_time_page,
+            set_date_page,
+            about_page
         };
 
         let widgets = AppWidgets { screens_stack };

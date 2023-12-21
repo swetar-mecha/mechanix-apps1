@@ -249,7 +249,7 @@ background: rgba(0, 0, 0, 0.6);
 .custom-list-item-box {
     min-height: 60px;
     min-width: 100%;
-    padding: 0px 10px;
+    padding: 0px 20px;
     margin-bottom: 10px;
     border-radius: 6px;
     background: #15171D;
@@ -493,27 +493,11 @@ background: rgba(0, 0, 0, 0.6);
     background: #15171D;
 }
 
-.security-label-box {
-    border-radius: 4px;
-    /* border: 1px solid #202431; */
-    background: #15171D;
-    padding: 24px 20px;
-    margin-bottom: 30px;
-}
-
-.security-label-text {
-    color: #FAFBFC;
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-}
-
 .reset-pin-btn-box {
     border-radius: 8px;
     background: #15171D;
     padding: 20px 14px;
-    margin-bottom: 30px;
+    margin: 30px 0px;
 }
 
 .reset-pin-btn-text {

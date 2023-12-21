@@ -199,6 +199,18 @@ impl SimpleComponent for SettingsPage {
                     let _ = sender
                         .output_sender()
                         .send(OutputMessage::ChangeScreen(Screens::Battery));
+                } else if menu_item.to_lowercase() == "security" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::Security));
+                } else if menu_item.to_lowercase() == "date, time" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::DateTime));
+                } else if menu_item.to_lowercase() == "about" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::About));
                 }
 
             }

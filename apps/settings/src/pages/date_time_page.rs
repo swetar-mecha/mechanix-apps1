@@ -24,20 +24,20 @@ pub struct Settings {
 }
 
 //Model
-pub struct SecurityPage {
+pub struct DateTimePage {
     settings: Settings,
 }
 
 //Widgets
-pub struct SecurityPageWidgets {}
+pub struct DateTimePageWidgets {}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     MenuItemPressed(String),
     BackPressed,
-    LockTimeoutOpted,
-    ResetPinOpted,
+    SetTimeOpted,
+    SetDateOpted,
 }
 
 pub struct SettingItem {
@@ -46,12 +46,12 @@ pub struct SettingItem {
     end_icon: Option<String>,
 }
 
-impl SimpleComponent for SecurityPage {
+impl SimpleComponent for DateTimePage {
     type Init = Settings;
     type Input = Message;
     type Output = Message;
     type Root = gtk::Box;
-    type Widgets = SecurityPageWidgets;
+    type Widgets = DateTimePageWidgets;
 
     fn init_root() -> Self::Root {
         gtk::Box::builder()
@@ -70,13 +70,13 @@ impl SimpleComponent for SecurityPage {
         let widget_configs = init.widget_configs.clone();
 
         let header_title = gtk::Label::builder()
-            .label("Security")
+            .label("Date & Time")
             .css_classes(["header-title"])
             .build();
 
         // modules.pages_settings.sound.display_icon.clone(),
         let header_icon: gtk::Image = get_image_from_path(
-            modules.pages_settings.security.display_icon.clone(),
+            modules.pages_settings.dateandtime.display_icon.clone(),
             &["header-icon"],
         );
 
@@ -88,19 +88,19 @@ impl SimpleComponent for SecurityPage {
         header.append(&header_icon);
         header.append(&header_title);
 
-        let lock_status_box = gtk::Box::builder()
+        let auto_time_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .css_classes(["network-details-box"])
             .build();
 
-        let enable_lock_row = gtk::Box::builder()
+        let enable_auto_time_row = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .hexpand(true)
             .css_classes(["network-details-box-row"])
             .build();
 
-        let enable_lock_text = gtk::Label::builder()
-            .label("Enable lock")
+        let enable_auto_time_text = gtk::Label::builder()
+            .label("Enable Automatic Time")
             .hexpand(true)
             .halign(gtk::Align::Start)
             .css_classes(["custom-switch-text"])
@@ -111,67 +111,61 @@ impl SimpleComponent for SecurityPage {
         let style_context = switch.style_context();
         style_context.add_class("custom-switch");
 
-        enable_lock_row.append(&enable_lock_text);
-        enable_lock_row.append(&switch);
-        lock_status_box.append(&enable_lock_row);
+        enable_auto_time_row.append(&enable_auto_time_text);
+        enable_auto_time_row.append(&switch);
+        auto_time_box.append(&enable_auto_time_row);
 
-        let security_items = gtk::Box::builder()
+        let screen_items = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .build();
 
-        let lock_timeout = CustomListItem::builder()
+        let set_time = CustomListItem::builder()
             .launch(CustomListItemSettings {
                 start_icon: None,
-                text: "Lock timeout".to_string(),
-                value: "10s".to_owned(),
+                text: "Set time".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
-                println!("SECURITY PAGE - SCREEN clicked {:?}", msg);
+                println!("DATE TIME PAGE - SCREEN clicked {:?}", msg);
                 match msg { 
-                    CustomListItemMessage::WidgetClicked => Message::LockTimeoutOpted,
+                    CustomListItemMessage::WidgetClicked => Message::SetTimeOpted,
                 }
             });
 
-        let lock_timeout_widget = lock_timeout.widget();
+        let set_time_widget = set_time.widget();
+        screen_items.append(set_time_widget);
 
-        security_items.append(lock_timeout_widget);
 
-        let reset_pin_button = gtk::Box::builder()
-        .orientation(gtk::Orientation::Vertical)
-        .css_classes(["reset-pin-btn-box"])
-        .build();
+        let set_date = CustomListItem::builder()
+        .launch(CustomListItemSettings {
+            start_icon: None,
+            text: "Set date".to_string(),
+            value: "".to_owned(),
+            end_icon: widget_configs.menu_item.end_icon.clone(),
+        })
+        .forward(sender.input_sender(), |msg| {
+            info!("msg is {:?}", msg);
+            println!("DATE TIME PAGE - SCREEN clicked {:?}", msg);
+            match msg { 
+                CustomListItemMessage::WidgetClicked => Message::SetDateOpted,
+            }
+        });
 
-        let reset_pin_text = gtk::Label::builder()
-            .label("Reset Pin")
-            .css_classes(["reset-pin-btn-text"])
-            .halign(gtk::Align::Center)
-            .build();
-        reset_pin_button.append(&reset_pin_text);
+        let set_date_widget = set_date.widget();
 
-        let reset_pin_gesture = GestureClick::builder().button(0).build();
-        reset_pin_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackPressed);
+        screen_items.append(set_date_widget);
 
-        }));
-
-        reset_pin_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output_sender().send(Message::ResetPinOpted);
-
-        }));
-        reset_pin_button.add_controller(reset_pin_gesture);
+     
 
         root.append(&header);
 
         let scrollable_content = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .build();
-        scrollable_content.append(&lock_status_box);
-        scrollable_content.append(&security_items);
-        scrollable_content.append(&reset_pin_button);
+        scrollable_content.append(&auto_time_box);
+        scrollable_content.append(&screen_items);
 
         let scrolled_window = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
@@ -222,9 +216,9 @@ impl SimpleComponent for SecurityPage {
 
         root.append(&footer);
 
-        let model = SecurityPage { settings: init };
+        let model = DateTimePage { settings: init };
 
-        let widgets = SecurityPageWidgets {};
+        let widgets = DateTimePageWidgets {};
 
         ComponentParts { model, widgets }
     }
@@ -236,11 +230,11 @@ impl SimpleComponent for SecurityPage {
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
             }
-            Message::ResetPinOpted => {
-                let _ = sender.output(Message::ResetPinOpted);
+            Message::SetTimeOpted => {
+                let _ = sender.output(Message::SetTimeOpted);
             }
-            Message::LockTimeoutOpted => {
-                let _ = sender.output(Message::LockTimeoutOpted);
+            Message::SetDateOpted => {
+                let _ = sender.output(Message::SetDateOpted);
             }
         }
     }

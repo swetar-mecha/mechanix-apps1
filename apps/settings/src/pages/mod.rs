@@ -18,3 +18,8 @@ pub mod sound_page;
 pub mod security_page;
 pub mod lock_timeout_page;
 pub mod battery_page;
+pub mod reset_pin_page;
+pub mod date_time_page;
+pub mod set_time_page;
+pub mod set_date_page;
+pub mod about_page;

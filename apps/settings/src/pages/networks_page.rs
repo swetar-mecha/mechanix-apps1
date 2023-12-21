@@ -161,6 +161,7 @@ impl SimpleComponent for NetworksPage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "Manage Networks".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
@@ -174,6 +175,7 @@ impl SimpleComponent for NetworksPage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "Ip Settings".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
@@ -201,6 +203,7 @@ impl SimpleComponent for NetworksPage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "Ethernet".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
@@ -215,6 +218,7 @@ impl SimpleComponent for NetworksPage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "DNS".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {

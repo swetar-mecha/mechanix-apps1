@@ -221,6 +221,8 @@ pub struct PagesSettings {
     pub battery: BatteryPageSettings,
     pub sound: SoundPageSettings,
     pub security: SecurityPageSettings,
+    pub dateandtime: DateTimePageSettings,
+    pub about: AboutPageSettings,
 }
 
 impl Default for PagesSettings {
@@ -231,7 +233,9 @@ impl Default for PagesSettings {
             display: DisplayPageSettings::default(),
             battery: BatteryPageSettings::default(),
             sound: SoundPageSettings::default(),
-            security: SecurityPageSettings::default()
+            security: SecurityPageSettings::default(),
+            dateandtime: DateTimePageSettings::default(),
+            about: AboutPageSettings::default()
         }
     }
 }
@@ -316,6 +320,36 @@ pub struct SecurityPageSettings {
 }
 
 impl Default for SecurityPageSettings {
+    fn default() -> Self {
+        Self {
+            display_icon: None,
+            is_enabled: true,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct DateTimePageSettings {
+    pub display_icon: Option<String>,
+    pub is_enabled: bool,
+}
+
+impl Default for DateTimePageSettings {
+    fn default() -> Self {
+        Self {
+            display_icon: None,
+            is_enabled: true,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct AboutPageSettings {
+    pub display_icon: Option<String>,
+    pub is_enabled: bool,
+}
+
+impl Default for AboutPageSettings {
     fn default() -> Self {
         Self {
             display_icon: None,
