@@ -1,12 +1,9 @@
+use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
 use custom_utils::get_image_from_path;
 use gtk::{glib::clone, prelude::*};
 use relm4::{
     gtk::{self, GestureClick},
-    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller, WidgetRef,
-};
-use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
-use custom_widgets::icon_input::{
-    IconInput, IconInputCss, InitSettings as IconInputSettings, OutputMessage as IconInputOutputMessage,
+    Component, ComponentParts, ComponentSender, SimpleComponent,
 };
 
 use tracing::info;
@@ -21,20 +18,22 @@ pub struct Settings {
 //Model
 pub struct SetTimePage {
     settings: Settings,
+    hr_idx: usize,
+    min_idx: usize,
+    am_pm_idx: usize,
 }
 
 //Widgets
-pub struct SetTimePageWidgets {
-    // code_input: Controller<IconInput>,
-}
+pub struct SetTimePageWidgets {}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
-    MenuItemPressed(String),
     BackPressed,
     HomeIconPressed,
-    PasswordChange(String),
+    HoursInputChange(usize),
+    MinutesInputChange(usize),
+    SelectionChanged(usize),
 }
 
 pub struct SettingItem {
@@ -64,7 +63,7 @@ impl SimpleComponent for SetTimePage {
         let layout = init.layout.clone();
         let widget_configs = init.widget_configs.clone();
 
-        let enter_password_label = gtk::Label::builder()
+        let header_title = gtk::Label::builder()
             .label("Set Time")
             .css_classes(["header-title"])
             .build();
@@ -74,7 +73,7 @@ impl SimpleComponent for SetTimePage {
             .css_classes(["header"])
             .build();
 
-        header.append(&enter_password_label);
+        header.append(&header_title);
 
         let time_input_label = gtk::Label::builder()
             .label("Time set according to the standard time (UST)")
@@ -82,60 +81,61 @@ impl SimpleComponent for SetTimePage {
             .css_classes(["connect-bluetooth-code-label"])
             .build();
 
-
         let input_box = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .build();
+            .orientation(gtk::Orientation::Horizontal)
+            .css_classes(["set-time-box"])
+            .build();
 
         root.append(&header);
         root.append(&time_input_label);
 
-        let hours_spinner_input  = gtk::SpinButton::builder()
-        .adjustment(
-            &gtk::Adjustment::builder()
-                .lower(1.0)
-                .upper(12.0)
-                .value(0.0)
-                .step_increment(1.0)
-                .build(),
-        )
-            .halign(gtk::Align::Center) // Center the input text
-            .hexpand(true)
-            .build();
+        let hr_string_array: Vec<String> = (0..13).map(|x| format!("{:02}", x)).collect();
+        let hr_str_array: Vec<&str> = hr_string_array.iter().map(|s| s.as_str()).collect();
+        let hr_model = gtk::StringList::new(&hr_str_array);
+        let hour_dropdown = gtk::DropDown::new(Some(hr_model), gtk::Expression::NONE);
+        hour_dropdown.add_css_class("time-dropdown-width");
+
+        hour_dropdown.connect_selected_notify(|dropdown| {
+            let  selected = dropdown.selected();
+            info!("hr_idx : {:?} ", selected);
+        });
+
 
         let label: gtk::Label = gtk::Label::builder()
-        .label(":")
-        .build();
+            .label(":")
+            .css_classes(["margin-x-10"])
+            .build();
 
-        // let minutes_spinner_input  = gtk::SpinButton::builder()
-        // .adjustment(
-        //     &gtk::Adjustment::builder()
-        //         .lower(1.0)
-        //         .upper(60.0)
-        //         .value(0.0)
-        //         .step_increment(1.0)
-        //         .build(),
-        // )
-        // .numeric(true)
-        // .halign(gtk::Align::Center) // Center the input text
-        // .hexpand(true)
-        // .css_classes(["hide-stepper-buttons"])
-        // .build();
+        let min_string_array: Vec<String> = (0..60).map(|x| format!("{:02}", x)).collect();
+        let min_str_array: Vec<&str> = min_string_array.iter().map(|s| s.as_str()).collect();
+        let min_model = gtk::StringList::new(&min_str_array);
+        let minutes_dropdown = gtk::DropDown::new(Some(min_model), gtk::Expression::NONE);
+        minutes_dropdown.add_css_class("time-dropdown-width");
 
-        let minutes_spinner_input = gtk::Entry::builder() 
-        .max_length(2) 
-        .input_purpose(gtk::InputPurpose::Digits) 
-        .halign(gtk::Align::Center) 
-        .hexpand(true) 
-        .build();
+        minutes_dropdown.connect_selected_notify(|dropdown| {
+            let  selected = dropdown.selected();
+            info!("min_idx : {:?} ", selected);
+        });
 
-        input_box.append(&hours_spinner_input);
+        let am_pm_list = ["AM", "PM"];
+        let am_pm_model = gtk::StringList::new(&am_pm_list);
+        let am_pm_dropdown = gtk::DropDown::new(Some(am_pm_model), gtk::Expression::NONE);
+        let am_pm_style = am_pm_dropdown.style_context();
+        am_pm_style.add_class("time-dropdown-width");
+        am_pm_style.add_class("margin-x-10");
+
+        am_pm_dropdown.connect_selected_notify(|dropdown| {
+            let  selected = dropdown.selected();
+            info!("am_pm_idx : {:?} ", selected);
+        });
+
+        input_box.append(&hour_dropdown);
         input_box.append(&label);
-        input_box.append(&minutes_spinner_input);
-
+        input_box.append(&minutes_dropdown);
+        input_box.append(&am_pm_dropdown);
 
         root.append(&input_box);
-        
+
         let footer = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["footer"])
@@ -198,12 +198,6 @@ impl SimpleComponent for SetTimePage {
 
         }));
 
-        // add_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-        //         info!("gesture button released is {}", this.current_button());
-        //         let _ = sender.output_sender().send(Message::PairBluetoothPressed);
-
-        // }));
-
         add_icon_button.append(&add_icon);
         add_icon_button.add_controller(add_click_gesture);
 
@@ -211,11 +205,14 @@ impl SimpleComponent for SetTimePage {
         footer.append(&footer_expand_box);
         root.append(&footer);
 
-        let model = SetTimePage { settings: init };
+        let model = SetTimePage {
+            settings: init,
+            hr_idx: 0,
+            min_idx: 0,
+            am_pm_idx: 0,
+        };
 
-        // let widgets = SetTimePageWidgets { code_input };
-        let widgets = SetTimePageWidgets { };
-        // let widgets = "" ;
+        let widgets = SetTimePageWidgets {};
 
         ComponentParts { model, widgets }
     }
@@ -223,14 +220,22 @@ impl SimpleComponent for SetTimePage {
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
         info!("Update message is {:?}", message);
         match message {
-            Message::MenuItemPressed(key) => {},
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
-            },
+            }
             Message::HomeIconPressed => {
                 sender.output(Message::HomeIconPressed);
-            },
-            Message::PasswordChange(text) => {}
+            }
+            Message::HoursInputChange(idx) => {
+                self.hr_idx = idx;
+            }
+            Message::MinutesInputChange(idx) => {
+                self.min_idx = idx;
+            }
+            Message::SelectionChanged(idx) => {
+                // println!("selection changed is {:?} ", idx);
+                self.am_pm_idx = idx;
+            }
         }
     }
 

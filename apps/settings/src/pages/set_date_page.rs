@@ -1,12 +1,9 @@
+use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
 use custom_utils::get_image_from_path;
 use gtk::{glib::clone, prelude::*};
 use relm4::{
     gtk::{self, GestureClick},
-    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller,
-};
-use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
-use custom_widgets::icon_input::{
-    IconInput, IconInputCss, InitSettings as IconInputSettings, OutputMessage as IconInputOutputMessage,
+    Component, ComponentParts, ComponentSender, SimpleComponent,
 };
 
 use tracing::info;
@@ -24,17 +21,13 @@ pub struct SetDatePage {
 }
 
 //Widgets
-pub struct SetDatePageWidgets {
-    code_input: Controller<IconInput>,
-}
+pub struct SetDatePageWidgets {}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
-    MenuItemPressed(String),
     BackPressed,
     HomeIconPressed,
-    PasswordChange(String),
 }
 
 pub struct SettingItem {
@@ -64,38 +57,36 @@ impl SimpleComponent for SetDatePage {
         let layout = init.layout.clone();
         let widget_configs = init.widget_configs.clone();
 
-        let enter_password_label = gtk::Label::builder()
-            .label("Set Date")
-            .css_classes(["header-title"])
-            .build();
-
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
 
-        header.append(&enter_password_label);
-
-        let date_input_label = gtk::Label::builder()
-            .label("Date format is dd/ mm/ yyyy")
-            .halign(gtk::Align::Start)
-            .css_classes(["connect-bluetooth-code-label"])
+        let header_title = gtk::Label::builder()
+            .label("Set Date")
+            .css_classes(["header-title"])
             .build();
 
-        let code_input = IconInput::builder()
-            .launch(IconInputSettings {
-                clear_icon: None,
-                icon: None,
-                placeholder: Option::from("".to_string()),
-                css: IconInputCss::default(),
-            })
-            .forward(sender.input_sender(), |msg| match msg {
-                IconInputOutputMessage::InputChange(text) => Message::PasswordChange(text),
-            });
+        header.append(&header_title);
+
+        let calendar = gtk::Calendar::builder()
+            .vexpand_set(true)
+            .hexpand_set(true)
+            .height_request(modules.pages_settings.dateandtime.window_size.1)
+            .width_request(modules.pages_settings.dateandtime.window_size.0)
+            .build();
+        calendar.style_context().add_class("custom-calendar");
+
+        calendar.connect_day_selected(|cal| {
+            let year = cal.year();
+            let month = cal.month();
+            let day = cal.day();
+
+            info!("Selected Date: {:?}-{:?}-{:?}", &year, &month, &day);
+        });
 
         root.append(&header);
-        root.append(&date_input_label);
-        root.append(code_input.widget());
+        root.append(&calendar);
 
         let footer = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
@@ -174,7 +165,8 @@ impl SimpleComponent for SetDatePage {
 
         let model = SetDatePage { settings: init };
 
-        let widgets = SetDatePageWidgets { code_input };
+        // let widgets = SetDatePageWidgets { code_input };
+        let widgets = SetDatePageWidgets {};
 
         ComponentParts { model, widgets }
     }
@@ -182,14 +174,12 @@ impl SimpleComponent for SetDatePage {
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
         info!("Update message is {:?}", message);
         match message {
-            Message::MenuItemPressed(key) => {},
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
-            },
+            }
             Message::HomeIconPressed => {
                 sender.output(Message::HomeIconPressed);
-            },
-            Message::PasswordChange(text) => {}
+            }
         }
     }
 

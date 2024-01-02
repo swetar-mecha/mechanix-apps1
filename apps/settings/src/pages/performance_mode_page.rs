@@ -101,9 +101,9 @@ impl SimpleComponent for PerformanceModePage {
                 }
             });
 
-        let medium = CustomListRadioButton::builder()
+        let balanced = CustomListRadioButton::builder()
             .launch(CustomListRadioButtonSettings {
-                text: "Medium".to_string(),
+                text: "Balanced".to_string(),
                 active_icon: widget_configs.radio_item.active_icon.clone(),
                 inactive_icon: widget_configs.radio_item.inactive_icon.clone(),
                 is_active: true,
@@ -131,11 +131,11 @@ impl SimpleComponent for PerformanceModePage {
             });
 
         let low_widget = low.widget();
-        let medium_widget = medium.widget();
+        let balanced_widget = balanced.widget();
         let high_widget = high.widget();
 
         screen_off_timeout_items.append(low_widget);
-        screen_off_timeout_items.append(medium_widget);
+        screen_off_timeout_items.append(balanced_widget);
         screen_off_timeout_items.append(high_widget);
 
         root.append(&header);

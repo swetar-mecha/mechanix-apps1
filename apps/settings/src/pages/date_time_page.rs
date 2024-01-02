@@ -123,12 +123,11 @@ impl SimpleComponent for DateTimePage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "Set time".to_string(),
-                value: "".to_owned(),
+                value: "GST".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
-                println!("DATE TIME PAGE - SCREEN clicked {:?}", msg);
                 match msg { 
                     CustomListItemMessage::WidgetClicked => Message::SetTimeOpted,
                 }
@@ -142,12 +141,11 @@ impl SimpleComponent for DateTimePage {
         .launch(CustomListItemSettings {
             start_icon: None,
             text: "Set date".to_string(),
-            value: "".to_owned(),
+            value: "January 1, 2024".to_owned(),  
             end_icon: widget_configs.menu_item.end_icon.clone(),
         })
         .forward(sender.input_sender(), |msg| {
             info!("msg is {:?}", msg);
-            println!("DATE TIME PAGE - SCREEN clicked {:?}", msg);
             match msg { 
                 CustomListItemMessage::WidgetClicked => Message::SetDateOpted,
             }

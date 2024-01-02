@@ -97,6 +97,7 @@ impl SimpleComponent for SoundPage {
             )
             .orientation(gtk::Orientation::Horizontal)
             .value_pos(gtk::PositionType::Right)
+            .css_classes(["custom-scale"])
             .build();
 
         let output_volumes_items = gtk::Box::builder()

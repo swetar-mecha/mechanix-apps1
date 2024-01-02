@@ -1,4 +1,4 @@
-use gtk::{gdk, gio, prelude::*};
+use gtk::prelude::*;
 
 use relm4::gtk::glib::clone;
 use relm4::{gtk, RelmWidgetExt, SimpleComponent};

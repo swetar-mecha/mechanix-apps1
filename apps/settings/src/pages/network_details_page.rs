@@ -5,12 +5,6 @@ use relm4::{
     ComponentParts, ComponentSender, SimpleComponent,
 };
 
-// use custom_utils::get_image_from_path;
-// use gtk::{glib::clone, prelude::BoxExt};
-// use relm4::{
-//     gtk::{self, prelude::WidgetExt}, Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent,
-// };
-
 use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
 
 use tracing::info;
@@ -33,7 +27,6 @@ pub struct NetworkDetailsPageWidgets {}
 //Messages
 #[derive(Debug)]
 pub enum Message {
-    MenuItemPressed(String),
     BackPressed,
     HomeIconPressed,
 }
@@ -328,7 +321,6 @@ impl SimpleComponent for NetworkDetailsPage {
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
         info!("Update message is {:?}", message);
         match message {
-            Message::MenuItemPressed(key) => {}
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
             }

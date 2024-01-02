@@ -332,6 +332,7 @@ impl Default for SecurityPageSettings {
 pub struct DateTimePageSettings {
     pub display_icon: Option<String>,
     pub is_enabled: bool,
+    pub window_size: (i32, i32),  
 }
 
 impl Default for DateTimePageSettings {
@@ -339,6 +340,7 @@ impl Default for DateTimePageSettings {
         Self {
             display_icon: None,
             is_enabled: true,
+            window_size: (1024, 768),
         }
     }
 }

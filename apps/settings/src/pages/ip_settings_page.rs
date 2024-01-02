@@ -7,9 +7,11 @@ use relm4::{
 
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
-    widgets::custom_list_item::{
+    widgets::{
+        custom_list_item::{
             CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
-        },
+        }, 
+    },
 };
 
 use tracing::info;
@@ -22,19 +24,19 @@ pub struct Settings {
 }
 
 //Model
-pub struct DisplayPage {
+pub struct IPSettingsPage {
     settings: Settings,
 }
 
 //Widgets
-pub struct DisplayPageWidgets {}
+pub struct IPSettingsPageWidgets {}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     MenuItemPressed(String),
     BackPressed,
-    ScreenTimeoutOpted,
+    ProtocolModes,
 }
 
 pub struct SettingItem {
@@ -43,12 +45,12 @@ pub struct SettingItem {
     end_icon: Option<String>,
 }
 
-impl SimpleComponent for DisplayPage {
+impl SimpleComponent for IPSettingsPage {
     type Init = Settings;
     type Input = Message;
     type Output = Message;
     type Root = gtk::Box;
-    type Widgets = DisplayPageWidgets;
+    type Widgets = IPSettingsPageWidgets;
 
     fn init_root() -> Self::Root {
         gtk::Box::builder()
@@ -66,77 +68,62 @@ impl SimpleComponent for DisplayPage {
         let layout = init.layout.clone();
         let widget_configs = init.widget_configs.clone();
 
-        let header_title = gtk::Label::builder()
-            .label("Display")
-            .css_classes(["header-title"])
-            .build();
+        // let header_box = gtk::Box::builder()
+        // .orientation(gtk::Orientation::Horizontal)
+        // .css_classes(["header"])
+        // .build();
 
-        let header_icon = get_image_from_path(
-            modules.pages_settings.display.display_icon.clone(),
-            &["header-icon"],
-        );
+        // let label = gtk::Label::builder()
+        //     .label("IP Settings")
+        //     .css_classes(["header-title"])
+        //     .build();
+
+        // header_box.append(&label);
+
+        // 
+        let header_title = gtk::Label::builder()
+        .label("IP Settings")
+        .css_classes(["header-title"])
+        .build();
+
 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
 
-        header.append(&header_icon);
         header.append(&header_title);
 
-        let brigntness_label = gtk::Label::builder()
-            .label("Brigtness CHECK")
-            .halign(gtk::Align::Start)
-            .build();
-
-        let brigtness_scale = gtk::Scale::builder()
-            .draw_value(true)
-            .adjustment(
-                &gtk::Adjustment::builder()
-                    .lower(0.0)
-                    .upper(100.0)
-                    .value(50.0)
-                    .step_increment(10.0)
-                    .page_increment(10.0)
-                    .build(),
-            )
-            .orientation(gtk::Orientation::Horizontal)
-            .value_pos(gtk::PositionType::Right)
-            .css_classes(["custom-scale"])
-            .build();
-
-
-        let brigtness_items = gtk::Box::builder()
+      
+        let ip_items = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
 
-        let screen_off_timeout = CustomListItem::builder()
+        let protocol_mode = CustomListItem::builder()
             .launch(CustomListItemSettings {
                 start_icon: None,
-                text: "Screen off timeout".to_string(),
-                value: "30s".to_owned(),
+                text: "Mode".to_string(),
+                value: "Auto [ DHCP ]".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
-                info!("msg is {:?}", msg);
-                println!("DISPLAY PAGE - SCREEN clicked {:?}", msg);
+                info!("IP SETTINGS PAGE msg is {:?}", msg);
                 match msg { 
-                    CustomListItemMessage::WidgetClicked => Message::ScreenTimeoutOpted,
+                    CustomListItemMessage::WidgetClicked => Message::ProtocolModes,
                 }
             });
 
-        let screen_off_timeout_widget = screen_off_timeout.widget();
-        brigtness_items.append(&brigtness_scale);
-        brigtness_items.append(screen_off_timeout_widget);
-        // brigtness_items.append(&screen_off_timeout_widget.clone());
+        let protocol_mode_widget = protocol_mode.widget();
+
+
+        ip_items.append(protocol_mode_widget);
 
         root.append(&header);
 
         let scrollable_content = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
-        scrollable_content.append(&brigntness_label);
-        scrollable_content.append(&brigtness_items);
+        scrollable_content.append(&ip_items);
 
         let scrolled_window = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
@@ -182,22 +169,22 @@ impl SimpleComponent for DisplayPage {
 
         root.append(&footer);
 
-        let model = DisplayPage { settings: init };
+        let model = IPSettingsPage { settings: init };
 
-        let widgets = DisplayPageWidgets {};
+        let widgets = IPSettingsPageWidgets {};
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
-        info!("dispay msg - Update message is {:?}", message);
+        info!("IP settings page - msg - Update message is {:?}", message);
         match message {
             Message::MenuItemPressed(key) => {}
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
             }
-            Message::ScreenTimeoutOpted => {
-                let _ = sender.output(Message::ScreenTimeoutOpted);
+            Message::ProtocolModes => {
+                let _ = sender.output(Message::ProtocolModes);
             }
         }
     }

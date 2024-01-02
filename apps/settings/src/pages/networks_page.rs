@@ -8,7 +8,7 @@ use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
     widgets::custom_list_item::{
         CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
-    },
+    }
 };
 use tracing::info;
 
@@ -30,11 +30,15 @@ pub struct NetworksPageWidgets {}
 //Messages
 #[derive(Debug)]
 pub enum Message { 
-    BackPressed,
+BackPressed,
     EnableNetworkPressed,
     ManageNetworkPressed,
+    IpSettingsPressed,
+    EthernetPressed,
+    DNSPressed,
     HomeIconPressed,
 }
+
 
 pub struct SettingItem {
     text: String,
@@ -151,8 +155,8 @@ impl SimpleComponent for NetworksPage {
         }));
 
         network_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output(Message::EnableNetworkPressed);
+            info!("gesture button released is {}", this.current_button());
+            let _ = sender.output(Message::EnableNetworkPressed);
         }));
         enabled_network_row.add_controller(network_click_gesture);
 
@@ -181,7 +185,7 @@ impl SimpleComponent for NetworksPage {
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
                 match msg {
-                    CustomListItemMessage::WidgetClicked => Message::HomeIconPressed,
+                    CustomListItemMessage::WidgetClicked => Message::IpSettingsPressed,
                 }
             });
 
@@ -209,7 +213,7 @@ impl SimpleComponent for NetworksPage {
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
                 match msg {
-                    CustomListItemMessage::WidgetClicked => Message::HomeIconPressed,
+                    CustomListItemMessage::WidgetClicked => Message::EthernetPressed,
                 }
             });
         let ethernet_widget = ethernet.widget();
@@ -224,7 +228,7 @@ impl SimpleComponent for NetworksPage {
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
                 match msg {
-                    CustomListItemMessage::WidgetClicked => Message::HomeIconPressed,
+                    CustomListItemMessage::WidgetClicked => Message::DNSPressed,
                 }
             });
         let dns_widget = dns.widget();
@@ -277,7 +281,7 @@ impl SimpleComponent for NetworksPage {
         }));
 
         back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
+                            info!("gesture button released is {}", this.current_button());
                 let _ = sender.output(Message::BackPressed);
         }));
 
@@ -299,16 +303,25 @@ impl SimpleComponent for NetworksPage {
         info!("Networks- Update message is {:?}", message);
         match message {
             Message::BackPressed => {
-                let _ = sender.output(Message::BackPressed);
+            let _ = sender.output(Message::BackPressed);
             },
             Message::EnableNetworkPressed => {
                 let _ = sender.output(Message::EnableNetworkPressed);
             },
             Message::ManageNetworkPressed => {
                 let _ = sender.output(Message::ManageNetworkPressed);
-            },
+                            },
             Message::HomeIconPressed => {
                 let _ = sender.output(Message::HomeIconPressed);
+            }
+            Message::IpSettingsPressed => {
+                let _ = sender.output(Message::IpSettingsPressed);
+            }
+            Message::EthernetPressed => {
+                let _ = sender.output(Message::EthernetPressed);
+            }
+            Message::DNSPressed => {
+                let _ = sender.output(Message::DNSPressed);
             }
         }
     }

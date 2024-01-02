@@ -8,8 +8,8 @@ use relm4::{
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
     widgets::custom_network_item::{
-            CustomNetworkItem, CustomNetworkItemSettings, Message as CustomNetworkItemMessage,
-        },
+        CustomNetworkItem, CustomNetworkItemSettings, Message as CustomNetworkItemMessage,
+    },
 };
 
 use tracing::info;
@@ -35,10 +35,7 @@ pub enum Message {
     BackPressed,
     KnownNetworkPressed,
     AvailableNetworkPressed,
-    MenuItemPressed(String),
-    BackSpacePressed,
     AddNetworkPressed,
-    HomeIconPressed,
 }
 
 pub struct SettingItem {
@@ -207,10 +204,10 @@ impl SimpleComponent for ManageNetworksPage {
             .build();
 
         let footer_expand_box = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .hexpand(true)
-        .valign(gtk::Align::End)
-        .build();
+            .orientation(gtk::Orientation::Horizontal)
+            .hexpand(true)
+            .valign(gtk::Align::End)
+            .build();
 
         let back_icon_button = gtk::Box::builder()
             .vexpand(false)
@@ -263,8 +260,7 @@ impl SimpleComponent for ManageNetworksPage {
 
         add_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
                 info!("gesture button released is {}", this.current_button());
-                let _ = sender.output_sender().send(Message::AddNetworkPressed);
-
+                let _ = sender.input_sender().send(Message::AddNetworkPressed);
         }));
 
         add_icon_button.append(&add_icon);
@@ -272,7 +268,7 @@ impl SimpleComponent for ManageNetworksPage {
 
         footer_expand_box.append(&add_icon_button);
         footer.append(&footer_expand_box);
-     
+
         root.append(&footer);
 
         let model = ManageNetworksPage { settings: init };
@@ -285,10 +281,9 @@ impl SimpleComponent for ManageNetworksPage {
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
         info!("Update message is {:?}", message);
         match message {
-            Message::MenuItemPressed(key) => {}
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
-            },
+            }
             Message::KnownNetworkPressed => {
                 let _ = sender.output(Message::KnownNetworkPressed);
             }
@@ -297,9 +292,6 @@ impl SimpleComponent for ManageNetworksPage {
             }
             Message::AddNetworkPressed => {
                 let _ = sender.output(Message::AddNetworkPressed);
-            }
-            Message::BackSpacePressed => {}
-            Message::HomeIconPressed => {
             }
         }
     }

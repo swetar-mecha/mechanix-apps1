@@ -52,6 +52,21 @@ use pages::{
     networks_page::{
         Message as NetworksPageMessage, NetworksPage, Settings as NetworksPageSettings,
     },
+    ip_settings_page::{
+        Message as IPSettingsPageMessage, IPSettingsPage, Settings as IPSettingsPageSettings,
+    },
+    ethernet_page::{
+        Message as EthernetPageMessage, EthernetPage, Settings as EthernetPageSettings,
+    },
+    dns_page::{
+        Message as DNSPageMessage, DNSPage, Settings as DNSPageSettings,
+    },
+    protocol_modes_page::{
+        Message as ProtocolModesPageMessage, ProtocolModesPage, Settings as ProtocolModesPageSettings,
+    },
+    protocol_details_page::{
+        Message as ProtocolDetailsPageMessage, ProtocolDetailsPage, Settings as ProtocolDetailsPageSettings,
+    },
     password_authentication::{
         Message as PasswordAuthenticationMessage, PasswordAuthentication,
         Settings as PasswordAuthenticationSettings,
@@ -90,7 +105,7 @@ use pages::{
 };
 use settings::LockScreenSettings;
 use tracing::info;
-pub mod errors;
+pub mod errors; 
 use crate::theme::LockScreenTheme;
 
 /// # LockScreen State
@@ -98,6 +113,7 @@ use crate::theme::LockScreenTheme;
 /// This struct is the state definition of the entire application
 struct LockScreen {
     current_screen: Screens,
+    previous_screen: Vec<Screens>,
     settings: LockScreenSettings,
     custom_theme: LockScreenTheme,
     home_page: Controller<HomePage>,
@@ -123,6 +139,11 @@ struct LockScreen {
     set_time_page: Controller<SetTimePage>,
     set_date_page: Controller<SetDatePage>,
     about_page: Controller<AboutPage>,
+    ip_settings_page: Controller<IPSettingsPage>,
+    protocol_modes_page: Controller<ProtocolModesPage>,
+    protocol_details_page: Controller<ProtocolDetailsPage>,
+    ethernet_page: Controller<EthernetPage>,
+    dns_page: Controller<DNSPage>
 }
 
 #[derive(Debug, Clone)]
@@ -152,7 +173,12 @@ pub enum Screens {
     DateTime,
     SetTime,
     SetDate,
-    About
+    About,
+    IPSettings,
+    Ethernet,
+    DNSPage,
+    ProtocolModes,
+    ProtocolDetails,
 }
 
 impl fmt::Display for Screens {
@@ -183,7 +209,12 @@ impl fmt::Display for Screens {
             Screens::DateTime => write!(f, "date_time"),
             Screens::SetTime => write!(f, "set_time"), 
             Screens::SetDate => write!(f, "set_date"), 
-            Screens::About => write!(f, "about")
+            Screens::About => write!(f, "about"),
+            Screens::IPSettings => write!(f, "ip_settings"),
+            Screens::ProtocolModes => write!(f, "protocol_modes"),
+            Screens::ProtocolDetails => write!(f, "protocol_details"),
+            Screens::Ethernet => write!(f, "ethernet_page"),
+            Screens::DNSPage => write!(f, "dns_page"),
         }
     }
 }
@@ -195,6 +226,7 @@ impl fmt::Display for Screens {
 #[derive(Debug, Clone)]
 pub enum Message {
     ChangeScreen(Screens),
+    GoBack,
     Dummy,
 }
 
@@ -369,11 +401,14 @@ impl SimpleComponent for LockScreen {
                 sender.input_sender(),
                 clone!(@strong modules => move|msg| {
                     info!("network_page - auth page message to parent {:?}", msg);
+                    println!("network_page - auth page message to parent {:?}", msg);
                     match msg {
-                        
-                        NetworksPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                        NetworksPageMessage::BackPressed => Message::GoBack,
                         NetworksPageMessage::EnableNetworkPressed => Message::ChangeScreen(Screens::NetworkDetails),
                         NetworksPageMessage::ManageNetworkPressed => Message::ChangeScreen(Screens::ManageNetworks),
+                        NetworksPageMessage::IpSettingsPressed => Message::ChangeScreen(Screens::IPSettings),
+                        NetworksPageMessage::EthernetPressed => Message::ChangeScreen(Screens::Ethernet),
+                        NetworksPageMessage::DNSPressed => Message::ChangeScreen(Screens::DNSPage),
                         NetworksPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
@@ -396,13 +431,12 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("manage_networks_page - auth page message to parent {:?}", msg);
                     match msg {
-                        ManageNetworksPageMessage::BackPressed => Message::ChangeScreen(Screens::Network),
+                        ManageNetworksPageMessage::BackPressed => Message::GoBack,
                         ManageNetworksPageMessage::KnownNetworkPressed => 
                         Message::ChangeScreen(Screens::NetworkDetails),
                         ManageNetworksPageMessage::AvailableNetworkPressed => 
                         Message::ChangeScreen(Screens::ConnectNetwork),
-                        ManageNetworksPageMessage::AddNetworkPressed => Message::ChangeScreen(Screens::AddNetwork),
-                        ManageNetworksPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                        ManageNetworksPageMessage::AddNetworkPressed => Message::ChangeScreen(Screens::AddNetwork), 
                         _ => Message::Dummy
                     }
                 }),
@@ -411,6 +445,122 @@ impl SimpleComponent for LockScreen {
         screens_stack.add_named(
             manage_networks_page.widget(),
             Option::from(Screens::ManageNetworks.to_string().as_str()),
+        );
+
+        let ip_settings_page: Controller<IPSettingsPage> = IPSettingsPage::builder()
+            .launch(IPSettingsPageSettings {
+                modules: modules.clone(),
+                layout: layout.clone(),
+                widget_configs: widget_configs.clone()
+            })
+            .forward(
+                sender.input_sender(),
+                clone!(@strong modules => move|msg| {
+                    info!("ip_settings_page - auth page message to parent {:?}", msg);
+                    match msg {
+                        IPSettingsPageMessage::BackPressed => Message::GoBack,
+                        IPSettingsPageMessage::ProtocolModes => Message::ChangeScreen(Screens::ProtocolModes),
+                        _ => Message::Dummy
+                    }
+                }),
+            );
+
+        screens_stack.add_named(
+            ip_settings_page.widget(),
+            Option::from(Screens::IPSettings.to_string().as_str()),
+        );
+
+        let ethernet_page : Controller<EthernetPage> = EthernetPage::builder()
+        .launch(EthernetPageSettings {
+            modules: modules.clone(),
+            layout: layout.clone(),
+            widget_configs: widget_configs.clone()
+        })
+        .forward(
+            sender.input_sender(),
+            clone!(@strong modules => move|msg| {
+                info!("ethernet_page - auth page message to parent {:?}", msg);
+                match msg {
+                    EthernetPageMessage::BackPressed => Message::GoBack,
+                    EthernetPageMessage::IPSettingsPressed => Message::ChangeScreen(Screens::IPSettings),
+                    _ => Message::Dummy
+                }
+            }),
+        );
+
+        screens_stack.add_named(
+            ethernet_page.widget(),
+            Option::from(Screens::Ethernet.to_string().as_str()),
+        );
+
+        let dns_page : Controller<DNSPage> = DNSPage::builder()
+        .launch(DNSPageSettings {
+            modules: modules.clone(),
+            layout: layout.clone(),
+            widget_configs: widget_configs.clone()
+        })
+        .forward(
+            sender.input_sender(),
+            clone!(@strong modules => move|msg| {
+                info!("dns_page - auth page message to parent {:?}", msg);
+                match msg {
+                    DNSPageMessage::BackPressed => Message::GoBack,
+                    _ => Message::Dummy
+                }
+            }),
+        );
+
+        screens_stack.add_named(
+            dns_page.widget(),
+            Option::from(Screens::DNSPage.to_string().as_str()),
+        );
+
+        let protocol_modes_page: Controller<ProtocolModesPage> = ProtocolModesPage::builder()
+        .launch(ProtocolModesPageSettings {
+            modules: modules.clone(),
+            layout: layout.clone(),
+            widget_configs: widget_configs.clone()
+        })
+        .forward(
+            sender.input_sender(),
+            clone!(@strong modules => move|msg| {
+                info!("protocol_modes_page - auth page message to parent {:?}", msg);
+                match msg {
+                // back -> ProtocolModes
+                ProtocolModesPageMessage::BackPressed => Message::GoBack,   // IPSettings
+                ProtocolModesPageMessage::StaticModePressed => Message::ChangeScreen(Screens::ProtocolDetails),
+                _ => Message::Dummy
+                }
+            }),
+        );
+
+        screens_stack.add_named(
+            protocol_modes_page.widget(),
+            Option::from(Screens::ProtocolModes.to_string().as_str()),
+        );
+
+
+        let protocol_details_page: Controller<ProtocolDetailsPage> = ProtocolDetailsPage::builder()
+        .launch(ProtocolDetailsPageSettings {
+            modules: modules.clone(),
+            layout: layout.clone(),
+            widget_configs: widget_configs.clone()
+        })
+        .forward(
+            sender.input_sender(),
+            clone!(@strong modules => move|msg| {
+                info!("protocol_details_page - auth page message to parent {:?}", msg);
+                match msg {
+                    // back -> ProtocolModes
+                    ProtocolDetailsPageMessage::BackPressed => Message::GoBack,
+                    _ => Message::Dummy
+                }
+            }),
+        );
+
+        screens_stack.add_named(
+            protocol_details_page.widget(),
+            Option::from(Screens::ProtocolDetails.to_string().as_str()),
         );
 
         let network_details_page: Controller<NetworkDetailsPage> = NetworkDetailsPage::builder()
@@ -424,8 +574,8 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("network_details_page - auth page message to parent {:?}", msg);
                     match msg {
-                        NetworkDetailsPageMessage::BackPressed =>
-                        Message::ChangeScreen(Screens::ManageNetworks),
+                        // back -> ManageNetworks 
+                        NetworkDetailsPageMessage::BackPressed => Message::GoBack,
                         NetworkDetailsPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                             _ => Message::Dummy
                     }
@@ -448,7 +598,8 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-                        ConnectNetworkPageMessage::BackPressed => Message::ChangeScreen(Screens::ManageNetworks),
+                        // back -> ManageNetworks 
+                        ConnectNetworkPageMessage::BackPressed => Message::GoBack,
                         ConnectNetworkPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
@@ -471,7 +622,8 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-                        AddNetworkPageMessage::BackPressed => Message::ChangeScreen(Screens::ManageNetworks),
+                        // back -> ManageNetworks 
+                        AddNetworkPageMessage::BackPressed => Message::GoBack,
                         AddNetworkPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                             _ => Message::Dummy
                     }
@@ -493,8 +645,8 @@ impl SimpleComponent for LockScreen {
                 sender.input_sender(),
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
-                    match msg {
-                        ManageBluetoothPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                    match msg { 
+                        ManageBluetoothPageMessage::BackPressed => Message::GoBack,
                         ManageBluetoothPageMessage::AvaiableDevicePressed => Message::ChangeScreen(Screens::BluetoothDetails),
                         ManageBluetoothPageMessage::OtherDevicePressed => Message::ChangeScreen(Screens::ConnectBluetooth),
                         // ManageBluetoothPageMessage::OtherDevicePressed => Message::ChangeScreen(Screens::BluetoothPairRequest),
@@ -520,8 +672,9 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-                       BluetoothDetailsPageMessage::BackPressed => Message::ChangeScreen(Screens::ManageBluetooth),
-                       BluetoothDetailsPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                        // back -> ManageBluetooth
+                        BluetoothDetailsPageMessage::BackPressed => Message::GoBack,
+                        BluetoothDetailsPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
                 }),
@@ -543,8 +696,9 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-                       ConnectBluetoothPageMessage::BackPressed => Message::ChangeScreen(Screens::ManageBluetooth),
-                       ConnectBluetoothPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                        // back -> ManageBluetooth
+                        ConnectBluetoothPageMessage::BackPressed => Message::GoBack,
+                        ConnectBluetoothPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
                 }),
@@ -566,8 +720,9 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-                       BluetoothPairRequestPageMessage::BackPressed => Message::ChangeScreen(Screens::ManageBluetooth),
-                       BluetoothPairRequestPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                        // back -> ManageBluetooth
+                        BluetoothPairRequestPageMessage::BackPressed => Message::GoBack,
+                        BluetoothPairRequestPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
                 }),
@@ -588,8 +743,8 @@ impl SimpleComponent for LockScreen {
                 sender.input_sender(),
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
-                    match msg {
-                        DisplayPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                    match msg { 
+                        DisplayPageMessage::BackPressed => Message::GoBack,
                         DisplayPageMessage::ScreenTimeoutOpted => Message::ChangeScreen(Screens::ScreenTimeout),
                         _ => Message::Dummy
                     }
@@ -611,8 +766,8 @@ impl SimpleComponent for LockScreen {
                 sender.input_sender(),
                 clone!(@strong modules => move|msg| {
                     info!("battery_page - auth page message to parent {:?}", msg);
-                    match msg {
-                        BatteryPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                    match msg { 
+                        BatteryPageMessage::BackPressed => Message::GoBack,
                         BatteryPageMessage::ScreenTimeoutOpted => Message::ChangeScreen(Screens::ScreenTimeout),
                         BatteryPageMessage::PerformanceOpted => Message::ChangeScreen(Screens::PerformanceMode),
                         _ => Message::Dummy
@@ -635,8 +790,9 @@ impl SimpleComponent for LockScreen {
                 sender.input_sender(),
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
-                    match msg {
-                        ScreenTimeoutPageMessage::BackPressed => Message::ChangeScreen(Screens::Display),
+                    match msg { 
+                        // back -> Display or Battery
+                        ScreenTimeoutPageMessage::BackPressed => Message::GoBack,
                         ScreenTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
@@ -658,8 +814,8 @@ impl SimpleComponent for LockScreen {
                 sender.input_sender(),
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
-                    match msg {
-                        SoundPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                    match msg { 
+                        SoundPageMessage::BackPressed => Message::GoBack,
                         SoundPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                             _ => Message::Dummy
                     }
@@ -682,9 +838,10 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-                        PerformanceModePageMessage::BackPressed => Message::ChangeScreen(Screens::Battery),
-                       PerformanceModePageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
-                        _ => Message::Dummy
+                        // back -> Battery
+                        PerformanceModePageMessage::BackPressed => Message::GoBack,
+                        PerformanceModePageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                            _ => Message::Dummy
                     }
                 }),
             );
@@ -705,7 +862,7 @@ impl SimpleComponent for LockScreen {
             clone!(@strong modules => move|msg| {
                 info!("security_page - auth page message to parent {:?}", msg);
                 match msg {
-                    SecurityPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                    SecurityPageMessage::BackPressed => Message::GoBack,
                     SecurityPageMessage::LockTimeoutOpted => Message::ChangeScreen(Screens::LockTimeout),
                     SecurityPageMessage::ResetPinOpted => Message::ChangeScreen(Screens::ResetPin),
                     _ => Message::Dummy
@@ -729,8 +886,9 @@ impl SimpleComponent for LockScreen {
                 clone!(@strong modules => move|msg| {
                     info!("auth page message to parent {:?}", msg);
                     match msg {
-                            LockTimeoutPageMessage::BackPressed => Message::ChangeScreen(Screens::Security),
-                            LockTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                        // back -> Security
+                        LockTimeoutPageMessage::BackPressed => Message::GoBack, 
+                        LockTimeoutPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                         _ => Message::Dummy
                     }
                 }),
@@ -752,9 +910,10 @@ impl SimpleComponent for LockScreen {
             clone!(@strong modules => move|msg| {
                 info!("auth page message to parent {:?}", msg);
                 match msg {
-                   ResetPinPageMessage::BackPressed => Message::ChangeScreen(Screens::Security),
-                   ResetPinPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
-                    _ => Message::Dummy
+                    // back -> Security
+                    ResetPinPageMessage::BackPressed => Message::GoBack,   
+                    ResetPinPageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                        _ => Message::Dummy
                 }
             }),
         );
@@ -776,7 +935,7 @@ impl SimpleComponent for LockScreen {
             clone!(@strong modules => move|msg| {
                 info!("date_time_page - auth page message to parent {:?}", msg);
                 match msg {
-                    DateTimePageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                    DateTimePageMessage::BackPressed => Message::GoBack,    
                     DateTimePageMessage::SetTimeOpted => Message::ChangeScreen(Screens::SetTime),
                     DateTimePageMessage::SetDateOpted => Message::ChangeScreen(Screens::SetDate),
                     _ => Message::Dummy
@@ -801,9 +960,10 @@ impl SimpleComponent for LockScreen {
             clone!(@strong modules => move|msg| {
                 info!("auth page message to parent {:?}", msg);
                 match msg {
-                   SetTimePageMessage::BackPressed => Message::ChangeScreen(Screens::DateTime),
-                   SetTimePageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
-                    _ => Message::Dummy
+                    // back -> DateTime
+                    SetTimePageMessage::BackPressed => Message::GoBack,  
+                    SetTimePageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                        _ => Message::Dummy
                 }
             }),
         );
@@ -824,8 +984,9 @@ impl SimpleComponent for LockScreen {
             clone!(@strong modules => move|msg| {
                 info!("auth page message to parent {:?}", msg);
                 match msg {
-                   SetDatePageMessage::BackPressed => Message::ChangeScreen(Screens::DateTime),
-                   SetDatePageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
+                    // back -> DateTime
+                    SetDatePageMessage::BackPressed => Message::GoBack,  
+                    SetDatePageMessage::HomeIconPressed => Message::ChangeScreen(Screens::LockScreen),
                     _ => Message::Dummy
                 }
             }),
@@ -847,7 +1008,7 @@ impl SimpleComponent for LockScreen {
             clone!(@strong modules => move|msg| {
                 info!("auth page message to parent {:?}", msg);
                 match msg {
-                   AboutPageMessage::BackPressed => Message::ChangeScreen(Screens::Settings),
+                   AboutPageMessage::BackPressed => Message::GoBack,
                     _ => Message::Dummy
                 }
             }),
@@ -870,6 +1031,7 @@ impl SimpleComponent for LockScreen {
             settings,
             custom_theme,
             current_screen,
+            previous_screen: Vec::new(),
             home_page,
             settings_page,
             network_page,
@@ -892,7 +1054,12 @@ impl SimpleComponent for LockScreen {
             date_time_page,
             set_time_page,
             set_date_page,
-            about_page
+            about_page,
+            ip_settings_page,
+            protocol_modes_page,
+            protocol_details_page,
+            ethernet_page,
+            dns_page
         };
 
         let widgets = AppWidgets { screens_stack };
@@ -904,7 +1071,15 @@ impl SimpleComponent for LockScreen {
         info!("Update message is {:?}", message);
         match message {
             Message::ChangeScreen(screen) => {
-                self.current_screen = screen;
+                // self.previous_screen = Some(self.current_screen.clone());
+                self.previous_screen.push(self.current_screen.clone());
+                self.current_screen = screen; 
+            
+            }
+            Message::GoBack => {
+                if let Some(previous_screen) = self.previous_screen.pop() {
+                self.current_screen = previous_screen;
+                }
             }
             _ => (),
         }
@@ -924,9 +1099,9 @@ fn main() {
     // install global collector configured based on RUST_LOG env var.
     tracing_subscriber::fmt()
         .pretty()
-        .with_env_filter("mecha_settings_app=trace")
+        .with_env_filter("settings=trace")
         .with_thread_names(true)
         .init();
-    let app = RelmApp::new("lock.screen").with_args(vec![]);
+    let app = RelmApp::new("apps.settings").with_args(vec![]);
     app.run::<LockScreen>(());
 }

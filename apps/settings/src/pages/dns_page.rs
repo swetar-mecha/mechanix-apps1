@@ -11,7 +11,6 @@ use crate::{
             CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
         },
 };
-
 use tracing::info;
 
 //Init Settings
@@ -22,19 +21,19 @@ pub struct Settings {
 }
 
 //Model
-pub struct DisplayPage {
+pub struct DNSPage {
     settings: Settings,
 }
 
 //Widgets
-pub struct DisplayPageWidgets {}
+pub struct DNSPageWidgets {}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     MenuItemPressed(String),
     BackPressed,
-    ScreenTimeoutOpted,
+    DNSModePressed,
 }
 
 pub struct SettingItem {
@@ -43,12 +42,12 @@ pub struct SettingItem {
     end_icon: Option<String>,
 }
 
-impl SimpleComponent for DisplayPage {
+impl SimpleComponent for DNSPage {
     type Init = Settings;
     type Input = Message;
     type Output = Message;
     type Root = gtk::Box;
-    type Widgets = DisplayPageWidgets;
+    type Widgets = DNSPageWidgets;
 
     fn init_root() -> Self::Root {
         gtk::Box::builder()
@@ -67,76 +66,63 @@ impl SimpleComponent for DisplayPage {
         let widget_configs = init.widget_configs.clone();
 
         let header_title = gtk::Label::builder()
-            .label("Display")
+            .label("DNS")
             .css_classes(["header-title"])
             .build();
-
-        let header_icon = get_image_from_path(
-            modules.pages_settings.display.display_icon.clone(),
-            &["header-icon"],
-        );
 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
 
-        header.append(&header_icon);
         header.append(&header_title);
 
-        let brigntness_label = gtk::Label::builder()
-            .label("Brigtness CHECK")
-            .halign(gtk::Align::Start)
-            .build();
-
-        let brigtness_scale = gtk::Scale::builder()
-            .draw_value(true)
-            .adjustment(
-                &gtk::Adjustment::builder()
-                    .lower(0.0)
-                    .upper(100.0)
-                    .value(50.0)
-                    .step_increment(10.0)
-                    .page_increment(10.0)
-                    .build(),
-            )
-            .orientation(gtk::Orientation::Horizontal)
-            .value_pos(gtk::PositionType::Right)
-            .css_classes(["custom-scale"])
-            .build();
-
-
-        let brigtness_items = gtk::Box::builder()
+        let items_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
 
-        let screen_off_timeout = CustomListItem::builder()
+        let dns_mode = CustomListItem::builder()
             .launch(CustomListItemSettings {
                 start_icon: None,
-                text: "Screen off timeout".to_string(),
-                value: "30s".to_owned(),
+                text: "Mode".to_string(),
+                value: "Auto".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
-                info!("msg is {:?}", msg);
-                println!("DISPLAY PAGE - SCREEN clicked {:?}", msg);
-                match msg { 
-                    CustomListItemMessage::WidgetClicked => Message::ScreenTimeoutOpted,
+                info!("DNS PAGE msg is {:?}", msg);
+                match msg {
+                    CustomListItemMessage::WidgetClicked => Message::DNSModePressed,
                 }
             });
 
-        let screen_off_timeout_widget = screen_off_timeout.widget();
-        brigtness_items.append(&brigtness_scale);
-        brigtness_items.append(screen_off_timeout_widget);
-        // brigtness_items.append(&screen_off_timeout_widget.clone());
+        let dns_mode_widget = dns_mode.widget();
+
+        //
+        let dns_server_1 = CustomListItem::builder()
+            .launch(CustomListItemSettings {
+                start_icon: None,
+                text: "DNS Server 1".to_string(),
+                value: "192.168.1.1".to_owned(),
+                end_icon: widget_configs.menu_item.end_icon.clone(),
+            })
+            .forward(sender.input_sender(), |msg| {
+                info!("DNS PAGE msg is {:?}", msg);
+                match msg {
+                    CustomListItemMessage::WidgetClicked => Message::DNSModePressed,
+                }
+            });
+
+        let dns_server_1_widget = dns_server_1.widget();
+
+        items_box.append(dns_mode_widget);
+        items_box.append(dns_server_1_widget);
 
         root.append(&header);
 
         let scrollable_content = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
-        scrollable_content.append(&brigntness_label);
-        scrollable_content.append(&brigtness_items);
+        scrollable_content.append(&items_box);
 
         let scrolled_window = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
@@ -148,56 +134,59 @@ impl SimpleComponent for DisplayPage {
         root.append(&scrolled_window);
 
         let footer = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .css_classes(["footer"])
-        .hexpand(true)
-        .vexpand(true)
-        .build();
+            .orientation(gtk::Orientation::Horizontal)
+            .css_classes(["footer"])
+            .hexpand(true)
+            .vexpand(true)
+            .valign(gtk::Align::End)
+            .build();
 
         let back_icon_button = gtk::Box::builder()
             .vexpand(false)
             .hexpand(false)
-            .valign(gtk::Align::End)
+            .valign(gtk::Align::Center)
             .css_classes(["footer-icon-button"])
             .build();
+
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
         back_icon.set_vexpand(true);
         back_icon.set_hexpand(true);
         back_icon.set_halign(gtk::Align::Center);
         back_icon.set_valign(gtk::Align::Center);
-        let back_click_gesture = GestureClick::builder().button(0).build();
-        back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
+        let left_click_gesture = GestureClick::builder().button(0).build();
+        left_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
         info!("gesture button pressed is {}", this.current_button());
+            // sender.input_sender().send(Message::BackPressed);
+
         }));
 
-        back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
+        left_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
                 info!("gesture button released is {}", this.current_button());
-                let _ = sender.output(Message::BackPressed);
+                let _ = sender.output_sender().send(Message::BackPressed);
+
         }));
-
+        back_icon_button.add_controller(left_click_gesture);
         back_icon_button.append(&back_icon);
-        back_icon_button.add_controller(back_click_gesture);
-
         footer.append(&back_icon_button);
 
         root.append(&footer);
 
-        let model = DisplayPage { settings: init };
+        let model = DNSPage { settings: init };
 
-        let widgets = DisplayPageWidgets {};
+        let widgets = DNSPageWidgets {};
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
-        info!("dispay msg - Update message is {:?}", message);
+        info!("Update message is {:?}", message);
         match message {
             Message::MenuItemPressed(key) => {}
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
             }
-            Message::ScreenTimeoutOpted => {
-                let _ = sender.output(Message::ScreenTimeoutOpted);
+            Message::DNSModePressed => {
+                let _ = sender.output(Message::DNSModePressed);
             }
         }
     }

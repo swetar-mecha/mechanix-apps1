@@ -23,3 +23,8 @@ pub mod date_time_page;
 pub mod set_time_page;
 pub mod set_date_page;
 pub mod about_page;
+pub mod ip_settings_page;
+pub mod protocol_modes_page;
+pub mod protocol_details_page;
+pub mod ethernet_page;
+pub mod dns_page;

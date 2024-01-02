@@ -126,7 +126,7 @@ impl SimpleComponent for BatteryPage {
         .launch(CustomListItemSettings {
             start_icon: None,
             text: "Performance Mode".to_string(),
-            value: "".to_owned(),
+            value: "Balenced".to_owned(),
             end_icon: widget_configs.menu_item.end_icon.clone(),
         })
         .forward(sender.input_sender(), |msg| {

@@ -43,7 +43,6 @@
 
 .password-key-label {
     color: #E4E9EE;
-    text-align: center;
     font-family: Space Grotesk;
     font-size: 18px;
     font-style: normal;
@@ -208,6 +207,7 @@ background: rgba(0, 0, 0, 0.6);
 }
 
 .icon-input-root-focused-default {
+    /* .icon-input-root-focused-default { */
     /* border: 1px solid #3283E8; */
     background: rgba(0, 20, 61, 0.4);
 }
@@ -289,7 +289,6 @@ background: rgba(0, 0, 0, 0.6);
 
 .custom-network-item-name {
     color: #E4E9EE;
-    text-align: center;
     font-family: Space Grotesk;
     font-size: 18px;
     font-style: normal;
@@ -455,9 +454,6 @@ background: rgba(0, 0, 0, 0.6);
     margin-bottom: 10px;
     border-radius: 6px;
     background: #15171D;
-
-
-
 }
 
 
@@ -555,6 +551,47 @@ background: rgba(0, 0, 0, 0.6);
     margin: 30px 0px;
 }
 
-/* .custom-levelbar:active{
+.margin-x-10 {
+    margin: 0px 10px;
+}
+.set-time-box {
+    margin: 15px 15px;
+    padding: 15px;
+    font-weight: 500;
+}
+
+.time-dropdown-width {
+    min-width: 100px;
+    min-height: 50px;
+}
+
+
+.custom-scale trough highlight {
+    background-color: #0064CF ;
+}
+
+.custom-levelbar trough block.filled {
     background-color:  #34C759;
-} */
+}
+
+.custom-calendar grid label.day-number.today {
+    background-color: #0064CF;
+}
+
+.custom-calendar grid label.day-number:focus {
+    background-color: #e95420;
+}
+
+.spinbutton button.up {
+    -gtk-icon-source: -gtk-icontheme('pan-start-symbolic');
+    -gtk-icon-transform: rotate(90deg);
+    margin-left: -2px; /* Adjust the margin as needed */
+    margin-right: 2px;
+}
+
+.spinbutton button.down {
+    -gtk-icon-source: -gtk-icontheme('pan-end-symbolic');
+    -gtk-icon-transform: rotate(-90deg);
+    margin-right: -2px; /* Adjust the margin as needed */
+    margin-left: 2px;
+}

@@ -7,11 +7,12 @@ use relm4::{
 
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
-    widgets::custom_list_item::{
+    widgets::{
+        custom_list_item::{
             CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
-        },
+        }, 
+    },
 };
-
 use tracing::info;
 
 //Init Settings
@@ -22,19 +23,19 @@ pub struct Settings {
 }
 
 //Model
-pub struct DisplayPage {
+pub struct EthernetPage {
     settings: Settings,
 }
 
 //Widgets
-pub struct DisplayPageWidgets {}
+pub struct EthernetPageWidgets {}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     MenuItemPressed(String),
     BackPressed,
-    ScreenTimeoutOpted,
+    IPSettingsPressed,
 }
 
 pub struct SettingItem {
@@ -43,12 +44,12 @@ pub struct SettingItem {
     end_icon: Option<String>,
 }
 
-impl SimpleComponent for DisplayPage {
+impl SimpleComponent for EthernetPage {
     type Init = Settings;
     type Input = Message;
     type Output = Message;
     type Root = gtk::Box;
-    type Widgets = DisplayPageWidgets;
+    type Widgets = EthernetPageWidgets;
 
     fn init_root() -> Self::Root {
         gtk::Box::builder()
@@ -67,76 +68,73 @@ impl SimpleComponent for DisplayPage {
         let widget_configs = init.widget_configs.clone();
 
         let header_title = gtk::Label::builder()
-            .label("Display")
+            .label("Ethernet")
             .css_classes(["header-title"])
             .build();
-
-        let header_icon = get_image_from_path(
-            modules.pages_settings.display.display_icon.clone(),
-            &["header-icon"],
-        );
 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
 
-        header.append(&header_icon);
         header.append(&header_title);
 
-        let brigntness_label = gtk::Label::builder()
-            .label("Brigtness CHECK")
-            .halign(gtk::Align::Start)
-            .build();
-
-        let brigtness_scale = gtk::Scale::builder()
-            .draw_value(true)
-            .adjustment(
-                &gtk::Adjustment::builder()
-                    .lower(0.0)
-                    .upper(100.0)
-                    .value(50.0)
-                    .step_increment(10.0)
-                    .page_increment(10.0)
-                    .build(),
-            )
-            .orientation(gtk::Orientation::Horizontal)
-            .value_pos(gtk::PositionType::Right)
-            .css_classes(["custom-scale"])
-            .build();
-
-
-        let brigtness_items = gtk::Box::builder()
+        let enable_status_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
+            .css_classes(["network-details-box"])
             .build();
 
-        let screen_off_timeout = CustomListItem::builder()
+        let enable_row = gtk::Box::builder()
+            .orientation(gtk::Orientation::Horizontal)
+            .hexpand(true)
+            .css_classes(["network-details-box-row"])
+            .build();
+
+        let enable_text = gtk::Label::builder()
+            .label("Enable Ethernet")
+            .hexpand(true)
+            .halign(gtk::Align::Start)
+            .css_classes(["custom-switch-text"])
+            .build();
+
+        let switch = gtk::Switch::new();
+        switch.set_active(true);
+        let style_context = switch.style_context();
+        style_context.add_class("custom-switch");
+
+        enable_row.append(&enable_text);
+        enable_row.append(&switch);
+        enable_status_box.append(&enable_row);
+
+        let items_box = gtk::Box::builder()
+        .orientation(gtk::Orientation::Vertical)
+        .build();
+
+        let ip_settings = CustomListItem::builder()
             .launch(CustomListItemSettings {
                 start_icon: None,
-                text: "Screen off timeout".to_string(),
-                value: "30s".to_owned(),
+                text: "IP Settings".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
-                info!("msg is {:?}", msg);
-                println!("DISPLAY PAGE - SCREEN clicked {:?}", msg);
+                info!("ETHERNET PAGE msg is {:?}", msg);
                 match msg { 
-                    CustomListItemMessage::WidgetClicked => Message::ScreenTimeoutOpted,
+                    CustomListItemMessage::WidgetClicked => Message::IPSettingsPressed,
                 }
             });
 
-        let screen_off_timeout_widget = screen_off_timeout.widget();
-        brigtness_items.append(&brigtness_scale);
-        brigtness_items.append(screen_off_timeout_widget);
-        // brigtness_items.append(&screen_off_timeout_widget.clone());
+        let ip_settings_widget = ip_settings.widget();
+
+        items_box.append(ip_settings_widget);
 
         root.append(&header);
 
         let scrollable_content = gtk::Box::builder()
-            .orientation(gtk::Orientation::Vertical)
-            .build();
-        scrollable_content.append(&brigntness_label);
-        scrollable_content.append(&brigtness_items);
+        .orientation(gtk::Orientation::Vertical)
+        .build();
+        scrollable_content.append(&enable_status_box);
+        scrollable_content.append(&items_box);
 
         let scrolled_window = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
@@ -147,57 +145,62 @@ impl SimpleComponent for DisplayPage {
             .build();
         root.append(&scrolled_window);
 
+
+
         let footer = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .css_classes(["footer"])
         .hexpand(true)
         .vexpand(true)
+        .valign(gtk::Align::End)
         .build();
 
         let back_icon_button = gtk::Box::builder()
             .vexpand(false)
             .hexpand(false)
-            .valign(gtk::Align::End)
+            .valign(gtk::Align::Center)
             .css_classes(["footer-icon-button"])
             .build();
+
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
         back_icon.set_vexpand(true);
         back_icon.set_hexpand(true);
         back_icon.set_halign(gtk::Align::Center);
         back_icon.set_valign(gtk::Align::Center);
-        let back_click_gesture = GestureClick::builder().button(0).build();
-        back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
+        let left_click_gesture = GestureClick::builder().button(0).build();
+        left_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
         info!("gesture button pressed is {}", this.current_button());
+            // sender.input_sender().send(Message::BackPressed);
+
         }));
 
-        back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
+        left_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
                 info!("gesture button released is {}", this.current_button());
-                let _ = sender.output(Message::BackPressed);
+                let _ = sender.output_sender().send(Message::BackPressed);
+
         }));
-
+        back_icon_button.add_controller(left_click_gesture);
         back_icon_button.append(&back_icon);
-        back_icon_button.add_controller(back_click_gesture);
-
         footer.append(&back_icon_button);
 
         root.append(&footer);
 
-        let model = DisplayPage { settings: init };
+        let model = EthernetPage { settings: init };
 
-        let widgets = DisplayPageWidgets {};
+        let widgets = EthernetPageWidgets {};
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
-        info!("dispay msg - Update message is {:?}", message);
+        info!("Update message is {:?}", message);
         match message {
             Message::MenuItemPressed(key) => {}
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
-            }
-            Message::ScreenTimeoutOpted => {
-                let _ = sender.output(Message::ScreenTimeoutOpted);
+            },
+            Message::IPSettingsPressed => {
+                let _ = sender.output(Message::IPSettingsPressed);
             }
         }
     }

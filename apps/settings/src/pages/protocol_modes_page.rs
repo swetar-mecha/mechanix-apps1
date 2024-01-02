@@ -7,8 +7,9 @@ use relm4::{
 
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
-    widgets::custom_list_item::{
-            CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
+    widgets::custom_list_radio_button::{
+            CustomListRadioButton, CustomListRadioButtonSettings,
+            Message as CustomListRadioButtonMessage,
         },
 };
 
@@ -22,19 +23,20 @@ pub struct Settings {
 }
 
 //Model
-pub struct DisplayPage {
+pub struct ProtocolModesPage {
     settings: Settings,
 }
 
 //Widgets
-pub struct DisplayPageWidgets {}
+pub struct ProtocolModesPageWidgets {}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
-    MenuItemPressed(String),
+    AutoModePressed,
+    StaticModePressed,
     BackPressed,
-    ScreenTimeoutOpted,
+    HomeIconPressed,
 }
 
 pub struct SettingItem {
@@ -43,12 +45,12 @@ pub struct SettingItem {
     end_icon: Option<String>,
 }
 
-impl SimpleComponent for DisplayPage {
+impl SimpleComponent for ProtocolModesPage {
     type Init = Settings;
     type Input = Message;
     type Output = Message;
     type Root = gtk::Box;
-    type Widgets = DisplayPageWidgets;
+    type Widgets = ProtocolModesPageWidgets;
 
     fn init_root() -> Self::Root {
         gtk::Box::builder()
@@ -67,76 +69,64 @@ impl SimpleComponent for DisplayPage {
         let widget_configs = init.widget_configs.clone();
 
         let header_title = gtk::Label::builder()
-            .label("Display")
+            .label("Mode")
             .css_classes(["header-title"])
             .build();
-
-        let header_icon = get_image_from_path(
-            modules.pages_settings.display.display_icon.clone(),
-            &["header-icon"],
-        );
 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
 
-        header.append(&header_icon);
         header.append(&header_title);
 
-        let brigntness_label = gtk::Label::builder()
-            .label("Brigtness CHECK")
-            .halign(gtk::Align::Start)
-            .build();
-
-        let brigtness_scale = gtk::Scale::builder()
-            .draw_value(true)
-            .adjustment(
-                &gtk::Adjustment::builder()
-                    .lower(0.0)
-                    .upper(100.0)
-                    .value(50.0)
-                    .step_increment(10.0)
-                    .page_increment(10.0)
-                    .build(),
-            )
-            .orientation(gtk::Orientation::Horizontal)
-            .value_pos(gtk::PositionType::Right)
-            .css_classes(["custom-scale"])
-            .build();
-
-
-        let brigtness_items = gtk::Box::builder()
+        let screen_off_timeout_items = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
 
-        let screen_off_timeout = CustomListItem::builder()
-            .launch(CustomListItemSettings {
-                start_icon: None,
-                text: "Screen off timeout".to_string(),
-                value: "30s".to_owned(),
-                end_icon: widget_configs.menu_item.end_icon.clone(),
+        let auto_mode = CustomListRadioButton::builder()
+            .launch(CustomListRadioButtonSettings {
+                text: "Automatic [ DHCP ]".to_string(),
+                active_icon: widget_configs.radio_item.active_icon.clone(),
+                inactive_icon: widget_configs.radio_item.inactive_icon.clone(),
+                is_active: true,
+                ..Default::default()
             })
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
-                println!("DISPLAY PAGE - SCREEN clicked {:?}", msg);
-                match msg { 
-                    CustomListItemMessage::WidgetClicked => Message::ScreenTimeoutOpted,
+                match msg {
+                    CustomListRadioButtonMessage::WidgetClicked => Message::AutoModePressed,
                 }
             });
 
-        let screen_off_timeout_widget = screen_off_timeout.widget();
-        brigtness_items.append(&brigtness_scale);
-        brigtness_items.append(screen_off_timeout_widget);
-        // brigtness_items.append(&screen_off_timeout_widget.clone());
+    
+        let static_mode = CustomListRadioButton::builder()
+            .launch(CustomListRadioButtonSettings {
+                text: "Static".to_string(),
+                active_icon: widget_configs.radio_item.active_icon.clone(),
+                inactive_icon: widget_configs.radio_item.inactive_icon.clone(),
+                is_active: false,
+                description_text: Some("* Specifying IP Address, Subnet and Gateway is mandatory".to_string())
+            })
+            .forward(sender.input_sender(), |msg| {
+                info!("msg is {:?}", msg);
+                match msg {
+                    CustomListRadioButtonMessage::WidgetClicked => Message::StaticModePressed,
+                }
+            });
+
+        let auto_mode_widget = auto_mode.widget();
+        let static_mode_widget = static_mode.widget();
+
+        screen_off_timeout_items.append(auto_mode_widget);
+        screen_off_timeout_items.append(static_mode_widget);
 
         root.append(&header);
 
         let scrollable_content = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
-        scrollable_content.append(&brigntness_label);
-        scrollable_content.append(&brigtness_items);
+        scrollable_content.append(&screen_off_timeout_items);
 
         let scrolled_window = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
@@ -157,9 +147,10 @@ impl SimpleComponent for DisplayPage {
         let back_icon_button = gtk::Box::builder()
             .vexpand(false)
             .hexpand(false)
-            .valign(gtk::Align::End)
+            .valign(gtk::Align::Center)
             .css_classes(["footer-icon-button"])
             .build();
+
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
         back_icon.set_vexpand(true);
         back_icon.set_hexpand(true);
@@ -168,36 +159,42 @@ impl SimpleComponent for DisplayPage {
         let back_click_gesture = GestureClick::builder().button(0).build();
         back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
         info!("gesture button pressed is {}", this.current_button());
+            // sender.input_sender().send(Message::BackPressed);
+
         }));
 
         back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
                 info!("gesture button released is {}", this.current_button());
-                let _ = sender.output(Message::BackPressed);
+                let _ = sender.output_sender().send(Message::BackPressed);
+
         }));
-
-        back_icon_button.append(&back_icon);
         back_icon_button.add_controller(back_click_gesture);
-
+        back_icon_button.append(&back_icon);
         footer.append(&back_icon_button);
 
         root.append(&footer);
 
-        let model = DisplayPage { settings: init };
+        let model = ProtocolModesPage { settings: init };
 
-        let widgets = DisplayPageWidgets {};
+        let widgets = ProtocolModesPageWidgets {};
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
-        info!("dispay msg - Update message is {:?}", message);
+        info!("Update message is {:?}", message);
         match message {
-            Message::MenuItemPressed(key) => {}
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
-            }
-            Message::ScreenTimeoutOpted => {
-                let _ = sender.output(Message::ScreenTimeoutOpted);
+            },
+            Message::StaticModePressed => {
+                let _ = sender.output(Message::StaticModePressed);
+            },
+            Message::AutoModePressed => {
+                let _ = sender.output(Message::AutoModePressed);
+            },
+            Message::HomeIconPressed => {
+                let _ = sender.output(Message::HomeIconPressed);
             }
         }
     }

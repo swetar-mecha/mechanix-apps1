@@ -2,14 +2,9 @@ use custom_utils::get_image_from_path;
 use gtk::{glib::clone, prelude::*};
 use relm4::{
     gtk::{self, GestureClick},
-    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent,
+    Component, ComponentParts, ComponentSender, SimpleComponent,
 };
-use crate::{
-    settings::{LayoutSettings, Modules, WidgetConfigs},
-    widgets::custom_list_item::{
-        CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
-    },
-};
+use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
 use tracing::info;
 
 //Init Settings
@@ -20,12 +15,12 @@ pub struct Settings {
 }
 
 //Model
-pub struct AboutPage {
+pub struct ProtocolDetailsPage {
     settings: Settings,
 }
 
 //Widgets
-pub struct AboutPageWidgets {}
+pub struct ProtocolDetailsPageWidgets {}
 
 //Messages
 #[derive(Debug)]
@@ -40,12 +35,12 @@ pub struct SettingItem {
     end_icon: Option<String>,
 }
 
-impl SimpleComponent for AboutPage {
+impl SimpleComponent for ProtocolDetailsPage {
     type Init = Settings;
     type Input = Message;
     type Output = Message;
     type Root = gtk::Box;
-    type Widgets = AboutPageWidgets;
+    type Widgets = ProtocolDetailsPageWidgets;
 
     fn init_root() -> Self::Root {
         gtk::Box::builder()
@@ -64,7 +59,7 @@ impl SimpleComponent for AboutPage {
         let widget_configs = init.widget_configs.clone();
 
         let header_title = gtk::Label::builder()
-            .label("About")
+            .label("IP Settings")
             .css_classes(["header-title"])
             .build();
 
@@ -75,139 +70,115 @@ impl SimpleComponent for AboutPage {
 
         header.append(&header_title);
 
-        let about_details_list1 = gtk::Box::builder()
+        let details_list1 = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .css_classes(["network-details-box"])
             .build();
 
         
-        let about_details_list2 = gtk::Box::builder()
+        let details_list2 = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .css_classes(["network-details-box"])
             .build();
 
 
-        let about_details_row_1 = gtk::Box::builder()
+        let details_row_1 = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .hexpand(true)
             .css_classes(["network-details-box-row"])
             .build();
 
-        let os_label = gtk::Label::builder()
-        .label("OS")
+        let mode_label = gtk::Label::builder()
+        .label("Mode")
         .hexpand(true)
         .halign(gtk::Align::Start)
         .css_classes(["network-details-box-row-key"])
         .build();
 
-        let os_value = gtk::Label::builder()
-        .label("Mechanix OS")
+        let mode_value = gtk::Label::builder()
+        .label("Static")
         .hexpand(true)
         .halign(gtk::Align::End)
         .css_classes(["network-details-box-row-key"])
         .build();
 
-        about_details_row_1.append(&os_label);
-        about_details_row_1.append(&os_value);
-        about_details_list1.append(&about_details_row_1);
+        details_row_1.append(&mode_label);
+        details_row_1.append(&mode_value);
+        details_list1.append(&details_row_1);
 
-        let about_details_row_2 = gtk::Box::builder()
+        let details_row_2 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
         .css_classes(["network-details-box-row"])
         .build();
 
-        let version_label = gtk::Label::builder()
-        .label("Version")
+        let ip_address_label = gtk::Label::builder()
+        .label("IP Address")
         .hexpand(true)
         .halign(gtk::Align::Start)
         .css_classes(["network-details-box-row-key"])
         .build();
 
-        let version_value = gtk::Label::builder()
-        .label("24.01")
+        let ip_address_value = gtk::Label::builder()
+        .label("192.160.12.1")
         .hexpand(true)
         .halign(gtk::Align::End)
         .css_classes(["network-details-box-row-key"])
         .build();
 
-        about_details_row_2.append(&version_label);
-        about_details_row_2.append(&version_value);
-        about_details_list1.append(&about_details_row_2);
+        details_row_2.append(&ip_address_label);
+        details_row_2.append(&ip_address_value);
+        details_list2.append(&details_row_2);
 
-        let about_details_row_3 = gtk::Box::builder()
+
+        let details_row_3 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
         .css_classes(["network-details-box-row"])
         .build();
 
-        let serial_no_label = gtk::Label::builder()
-        .label("Serial Number")
+        let subnet_mask_label = gtk::Label::builder()
+        .label("Subnet Mask")
         .hexpand(true)
         .halign(gtk::Align::Start)
         .css_classes(["network-details-box-row-key"])
         .build();
 
-        let serial_no_value = gtk::Label::builder()
-        .label("1245 6789")
+        let subnet_mask_value = gtk::Label::builder()
+        .label("255.255.255.0")
         .hexpand(true)
         .halign(gtk::Align::End)
         .css_classes(["network-details-box-row-key"])
         .build();
 
-        about_details_row_3.append(&serial_no_label);
-        about_details_row_3.append(&serial_no_value);
-        about_details_list2.append(&about_details_row_3);
+        details_row_3.append(&subnet_mask_label);
+        details_row_3.append(&subnet_mask_value);
+        details_list2.append(&details_row_3);
 
 
-        let about_details_row_4 = gtk::Box::builder()
+        let details_row_4 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
         .css_classes(["network-details-box-row"])
         .build();
 
-        let wifi_address_label = gtk::Label::builder()
-        .label("Wi-Fi MAC Address")
+        let gateway_label = gtk::Label::builder()
+        .label("Gateway")
         .hexpand(true)
         .halign(gtk::Align::Start)
         .css_classes(["network-details-box-row-key"])
         .build();
 
-        let wifi_address_value = gtk::Label::builder()
-        .label("B0:35:B5:DA:A6:75")
+        let gateway_value = gtk::Label::builder()
+        .label("None")
         .hexpand(true)
         .halign(gtk::Align::End)
         .css_classes(["network-details-box-row-key"])
         .build();
 
-        about_details_row_4.append(&wifi_address_label);
-        about_details_row_4.append(&wifi_address_value);
-        about_details_list2.append(&about_details_row_4);
-
-
-        let about_details_row_5 = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .hexpand(true)
-        .css_classes(["network-details-box-row"])
-        .build();
-
-        let ethernet_address_label = gtk::Label::builder()
-        .label("Ethernet MAC Address")
-        .hexpand(true)
-        .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
-        .build();
-
-        let ethernet_address_value = gtk::Label::builder()
-        .label("B0:35:B5:DA:A6:75")
-        .hexpand(true)
-        .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
-        .build();
-
-        about_details_row_5.append(&ethernet_address_label);
-        about_details_row_5.append(&ethernet_address_value);
-        about_details_list2.append(&about_details_row_5);
+        details_row_4.append(&gateway_label);
+        details_row_4.append(&gateway_value);
+        details_list2.append(&details_row_4);
 
         root.append(&header);
 
@@ -215,8 +186,8 @@ impl SimpleComponent for AboutPage {
             .orientation(gtk::Orientation::Vertical)
             .build();
 
-        scrollable_content.append(&about_details_list1);
-        scrollable_content.append(&about_details_list2);
+        scrollable_content.append(&details_list1);
+        scrollable_content.append(&details_list2);
 
         let scrolled_window = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
@@ -262,15 +233,15 @@ impl SimpleComponent for AboutPage {
 
         root.append(&footer);
 
-        let model = AboutPage { settings: init };
+        let model = ProtocolDetailsPage { settings: init };
 
-        let widgets = AboutPageWidgets {};
+        let widgets = ProtocolDetailsPageWidgets {};
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
-        info!("About- Update message is {:?}", message);
+        info!("Protocol Details- Update message is {:?}", message);
         match message {
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
