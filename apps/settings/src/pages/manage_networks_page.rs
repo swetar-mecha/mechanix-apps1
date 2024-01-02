@@ -191,7 +191,6 @@ impl SimpleComponent for ManageNetworksPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(&scrollable_content)
             .build();
         root.append(&scrolled_window);
@@ -212,7 +211,7 @@ impl SimpleComponent for ManageNetworksPage {
         let back_icon_button = gtk::Box::builder()
             .vexpand(false)
             .halign(gtk::Align::Start)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &[]);
@@ -242,7 +241,7 @@ impl SimpleComponent for ManageNetworksPage {
             .hexpand(true)
             .halign(gtk::Align::End)
             .valign(gtk::Align::End)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let add_icon = get_image_from_path(widget_configs.footer.add_icon, &["back-icon"]);

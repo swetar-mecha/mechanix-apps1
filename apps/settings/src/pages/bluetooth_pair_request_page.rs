@@ -118,7 +118,7 @@ impl SimpleComponent for BluetoothPairRequestPage {
             .vexpand(false)
             .hexpand(false)
             .valign(gtk::Align::Center)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
@@ -147,7 +147,7 @@ impl SimpleComponent for BluetoothPairRequestPage {
             .hexpand(true)
             .halign(gtk::Align::End)
             .valign(gtk::Align::End)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let add_icon = get_image_from_path(modules.submit.icon.default.clone(), &["back-icon"]);

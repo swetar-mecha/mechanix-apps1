@@ -53,7 +53,7 @@ impl SimpleComponent for CustomBluetoothItem {
         let container = gtk::Box::builder()
             .vexpand(false)
             .hexpand(false)
-            .css_classes(["custom-network-item-box"])
+            .css_classes(["custom-item-box"])
             .halign(gtk::Align::Fill)
             .valign(gtk::Align::Start)
             .hexpand(true)
@@ -72,7 +72,7 @@ impl SimpleComponent for CustomBluetoothItem {
             .vexpand(true)
             .hexpand(true)
             .label(&init.name)
-            .css_classes(["custom-network-item-name"])
+            .css_classes(["custom-item-name"])
             .build();
 
         let bluetooth_item_button = gtk::Box::builder().vexpand(false).build();
@@ -82,7 +82,7 @@ impl SimpleComponent for CustomBluetoothItem {
             match init.connected_icon.clone() {
                 Some(icon) => {
                     let connected_icon_image =
-                        get_image_from_path(Some(icon), &["custom-network-item-connected-icon"]);
+                        get_image_from_path(Some(icon), &["custom-connected-icon"]);
                     bluetooth_item_button.append(&connected_icon_image);
                 }
                 None => (),
@@ -92,7 +92,7 @@ impl SimpleComponent for CustomBluetoothItem {
         match init.info_i_icon.clone() {
             Some(icon) => {
                 let info_icon_image =
-                    get_image_from_path(Some(icon), &["custom-network-item-info-icon"]);
+                    get_image_from_path(Some(icon), &["custom-info-icon"]);
                 bluetooth_item_button.append(&info_icon_image);
             }
             None => (),

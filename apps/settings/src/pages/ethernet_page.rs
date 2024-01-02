@@ -81,13 +81,13 @@ impl SimpleComponent for EthernetPage {
 
         let enable_status_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .css_classes(["network-details-box"])
+            .css_classes(["settings-item-details-box"])
             .build();
 
         let enable_row = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .hexpand(true)
-            .css_classes(["network-details-box-row"])
+            .css_classes(["settings-item-details-box-row"])
             .build();
 
         let enable_text = gtk::Label::builder()
@@ -140,7 +140,6 @@ impl SimpleComponent for EthernetPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(&scrollable_content)
             .build();
         root.append(&scrolled_window);
@@ -159,7 +158,7 @@ impl SimpleComponent for EthernetPage {
             .vexpand(false)
             .hexpand(false)
             .valign(gtk::Align::Center)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);

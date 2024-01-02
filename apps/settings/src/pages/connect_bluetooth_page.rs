@@ -81,7 +81,7 @@ impl SimpleComponent for ConnectBluetoothPage {
         let code_input_label = gtk::Label::builder()
             .label("Enter code shared by the device here")
             .halign(gtk::Align::Start)
-            .css_classes(["connect-bluetooth-code-label"])
+            .css_classes(["text-14-label"])
             .build();
 
         let code_input = IconInput::builder()
@@ -116,7 +116,7 @@ impl SimpleComponent for ConnectBluetoothPage {
             .vexpand(false)
             .hexpand(false)
             .valign(gtk::Align::Center)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
@@ -145,7 +145,7 @@ impl SimpleComponent for ConnectBluetoothPage {
             .hexpand(true)
             .halign(gtk::Align::End)
             .valign(gtk::Align::End)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let add_icon = get_image_from_path(modules.submit.icon.default.clone(), &["back-icon"]);

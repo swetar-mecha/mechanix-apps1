@@ -77,34 +77,34 @@ impl SimpleComponent for AboutPage {
 
         let about_details_list1 = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .css_classes(["network-details-box"])
+            .css_classes(["settings-item-details-box"])
             .build();
 
         
         let about_details_list2 = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .css_classes(["network-details-box"])
+            .css_classes(["settings-item-details-box"])
             .build();
 
 
         let about_details_row_1 = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .hexpand(true)
-            .css_classes(["network-details-box-row"])
+            .css_classes(["settings-item-details-box-row"])
             .build();
 
         let os_label = gtk::Label::builder()
         .label("OS")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         let os_value = gtk::Label::builder()
         .label("Mechanix OS")
         .hexpand(true)
         .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         about_details_row_1.append(&os_label);
@@ -114,21 +114,21 @@ impl SimpleComponent for AboutPage {
         let about_details_row_2 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["network-details-box-row"])
+        .css_classes(["settings-item-details-box-row"])
         .build();
 
         let version_label = gtk::Label::builder()
         .label("Version")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         let version_value = gtk::Label::builder()
         .label("24.01")
         .hexpand(true)
         .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         about_details_row_2.append(&version_label);
@@ -138,21 +138,21 @@ impl SimpleComponent for AboutPage {
         let about_details_row_3 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["network-details-box-row"])
+        .css_classes(["settings-item-details-box-row"])
         .build();
 
         let serial_no_label = gtk::Label::builder()
         .label("Serial Number")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         let serial_no_value = gtk::Label::builder()
         .label("1245 6789")
         .hexpand(true)
         .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         about_details_row_3.append(&serial_no_label);
@@ -163,21 +163,21 @@ impl SimpleComponent for AboutPage {
         let about_details_row_4 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["network-details-box-row"])
+        .css_classes(["settings-item-details-box-row"])
         .build();
 
         let wifi_address_label = gtk::Label::builder()
         .label("Wi-Fi MAC Address")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         let wifi_address_value = gtk::Label::builder()
         .label("B0:35:B5:DA:A6:75")
         .hexpand(true)
         .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         about_details_row_4.append(&wifi_address_label);
@@ -188,21 +188,21 @@ impl SimpleComponent for AboutPage {
         let about_details_row_5 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["network-details-box-row"])
+        .css_classes(["settings-item-details-box-row"])
         .build();
 
         let ethernet_address_label = gtk::Label::builder()
         .label("Ethernet MAC Address")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         let ethernet_address_value = gtk::Label::builder()
         .label("B0:35:B5:DA:A6:75")
         .hexpand(true)
         .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         about_details_row_5.append(&ethernet_address_label);
@@ -222,7 +222,6 @@ impl SimpleComponent for AboutPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(&scrollable_content)
             .build();
         root.append(&scrolled_window);
@@ -238,7 +237,7 @@ impl SimpleComponent for AboutPage {
             .vexpand(false)
             .hexpand(false)
             .valign(gtk::Align::End)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
         back_icon.set_vexpand(true);

@@ -126,7 +126,7 @@ impl SimpleComponent for BluetoothDetailsPage {
             .hexpand(false)
             .valign(gtk::Align::End)
             .halign(gtk::Align::Start)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
         back_icon.set_vexpand(true);

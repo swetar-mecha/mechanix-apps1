@@ -143,7 +143,7 @@ impl SimpleComponent for AddNetworkPage {
         let back_icon_button = gtk::Box::builder()
             .hexpand(true)
             .halign(gtk::Align::Start)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &[]);
@@ -173,7 +173,7 @@ impl SimpleComponent for AddNetworkPage {
             .hexpand(true)
             .halign(gtk::Align::End)
             .valign(gtk::Align::End)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let add_icon = get_image_from_path(widget_configs.footer.add_icon, &["back-icon"]);

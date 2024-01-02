@@ -72,34 +72,34 @@ impl SimpleComponent for ProtocolDetailsPage {
 
         let details_list1 = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .css_classes(["network-details-box"])
+            .css_classes(["settings-item-details-box"])
             .build();
 
         
         let details_list2 = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .css_classes(["network-details-box"])
+            .css_classes(["settings-item-details-box"])
             .build();
 
 
         let details_row_1 = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .hexpand(true)
-            .css_classes(["network-details-box-row"])
+            .css_classes(["settings-item-details-box-row"])
             .build();
 
         let mode_label = gtk::Label::builder()
         .label("Mode")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         let mode_value = gtk::Label::builder()
         .label("Static")
         .hexpand(true)
         .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         details_row_1.append(&mode_label);
@@ -109,21 +109,21 @@ impl SimpleComponent for ProtocolDetailsPage {
         let details_row_2 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["network-details-box-row"])
+        .css_classes(["settings-item-details-box-row"])
         .build();
 
         let ip_address_label = gtk::Label::builder()
         .label("IP Address")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         let ip_address_value = gtk::Label::builder()
         .label("192.160.12.1")
         .hexpand(true)
         .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         details_row_2.append(&ip_address_label);
@@ -134,21 +134,21 @@ impl SimpleComponent for ProtocolDetailsPage {
         let details_row_3 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["network-details-box-row"])
+        .css_classes(["settings-item-details-box-row"])
         .build();
 
         let subnet_mask_label = gtk::Label::builder()
         .label("Subnet Mask")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         let subnet_mask_value = gtk::Label::builder()
         .label("255.255.255.0")
         .hexpand(true)
         .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         details_row_3.append(&subnet_mask_label);
@@ -159,21 +159,21 @@ impl SimpleComponent for ProtocolDetailsPage {
         let details_row_4 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["network-details-box-row"])
+        .css_classes(["settings-item-details-box-row"])
         .build();
 
         let gateway_label = gtk::Label::builder()
         .label("Gateway")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         let gateway_value = gtk::Label::builder()
         .label("None")
         .hexpand(true)
         .halign(gtk::Align::End)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
         details_row_4.append(&gateway_label);
@@ -193,7 +193,6 @@ impl SimpleComponent for ProtocolDetailsPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(&scrollable_content)
             .build();
         root.append(&scrolled_window);
@@ -209,7 +208,7 @@ impl SimpleComponent for ProtocolDetailsPage {
             .vexpand(false)
             .hexpand(false)
             .valign(gtk::Align::End)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
         back_icon.set_vexpand(true);

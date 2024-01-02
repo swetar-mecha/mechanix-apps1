@@ -58,7 +58,7 @@ impl SimpleComponent for SettingsPage {
     fn init_root() -> Self::Root {
         gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .css_classes(["pin-auth-container"])
+            .css_classes(["page-container"])
             .build()
     }
 
@@ -130,7 +130,7 @@ impl SimpleComponent for SettingsPage {
             .hexpand(false)
             .valign(gtk::Align::End)
             .halign(gtk::Align::Start)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
         back_icon.set_vexpand(true);
@@ -139,8 +139,7 @@ impl SimpleComponent for SettingsPage {
         back_icon.set_valign(gtk::Align::Center);
         let back_click_gesture = GestureClick::builder().button(0).build();
         back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackSpacePressed);
+        info!("gesture button pressed is {}", this.current_button()); 
         }));
 
         back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
@@ -156,7 +155,6 @@ impl SimpleComponent for SettingsPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(settings_menu_items.widget())
             .build();
         root.append(&scrolled_window);

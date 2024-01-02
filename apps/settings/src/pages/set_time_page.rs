@@ -78,7 +78,7 @@ impl SimpleComponent for SetTimePage {
         let time_input_label = gtk::Label::builder()
             .label("Time set according to the standard time (UST)")
             .halign(gtk::Align::Start)
-            .css_classes(["connect-bluetooth-code-label"])
+            .css_classes(["text-14-label"])
             .build();
 
         let input_box = gtk::Box::builder()
@@ -153,7 +153,7 @@ impl SimpleComponent for SetTimePage {
             .vexpand(false)
             .hexpand(false)
             .valign(gtk::Align::Center)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
@@ -182,7 +182,7 @@ impl SimpleComponent for SetTimePage {
             .hexpand(true)
             .halign(gtk::Align::End)
             .valign(gtk::Align::End)
-            .css_classes(["footer-icon-button"])
+            .css_classes(["footer-back-icon"])
             .build();
 
         let add_icon = get_image_from_path(modules.submit.icon.default.clone(), &["back-icon"]);
