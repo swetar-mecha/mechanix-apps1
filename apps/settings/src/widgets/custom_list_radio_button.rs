@@ -111,6 +111,7 @@ impl SimpleComponent for CustomListRadioButton {
                     .label(text)
                     .css_classes(["custom-list-radio-button-description"])
                     .build();
+                description_label.set_markup(text);
                 root.append(&description_label);
             }
             None => (),

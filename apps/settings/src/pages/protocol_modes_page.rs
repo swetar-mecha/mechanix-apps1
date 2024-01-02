@@ -106,7 +106,7 @@ impl SimpleComponent for ProtocolModesPage {
                 active_icon: widget_configs.radio_item.active_icon.clone(),
                 inactive_icon: widget_configs.radio_item.inactive_icon.clone(),
                 is_active: false,
-                description_text: Some("* Specifying IP Address, Subnet and Gateway is mandatory".to_string())
+                description_text: Some("<span foreground='red'>*</span> Specifying IP Address, Subnet and Gateway is mandatory".to_string())
             })
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
