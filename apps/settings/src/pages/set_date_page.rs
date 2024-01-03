@@ -1,11 +1,13 @@
+use gtk::prelude::*;
 use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
-use custom_utils::get_image_from_path;
-use gtk::{glib::clone, prelude::*};
 use relm4::{
-    gtk::{self, GestureClick},
-    Component, ComponentParts, ComponentSender, SimpleComponent,
+    gtk::{self},
+    Component, ComponentParts, ComponentSender, SimpleComponent, Controller, ComponentController,
 };
-
+use custom_widgets::icon_button::{
+    IconButton, IconButtonCss, InitSettings as IconButtonStetings,
+    InputMessage as IconButtonInputMessage, OutputMessage as IconButtonOutputMessage,
+};
 use tracing::info;
 
 //Init Settings
@@ -21,13 +23,17 @@ pub struct SetDatePage {
 }
 
 //Widgets
-pub struct SetDatePageWidgets {}
+pub struct SetDatePageWidgets {
+    back_button: Controller<IconButton>,
+    submit_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     BackPressed,
     HomeIconPressed,
+    SubmitPressed
 }
 
 pub struct SettingItem {
@@ -88,85 +94,49 @@ impl SimpleComponent for SetDatePage {
         root.append(&header);
         root.append(&calendar);
 
+        
         let footer = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .css_classes(["footer"])
-            .hexpand(true)
-            .vexpand(true)
-            .build();
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["footer"])
+        .vexpand(true)
+        .hexpand(true)
+        .valign(gtk::Align::End)
+        .build();
 
-        let footer_expand_box = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .hexpand(true)
-            .valign(gtk::Align::End)
-            .build();
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
 
-        let back_icon_button = gtk::Box::builder()
-            .vexpand(false)
-            .hexpand(false)
-            .valign(gtk::Align::Center)
-            .css_classes(["footer-back-icon"])
-            .build();
+        footer.append(back_button.widget());
 
-        let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
-        back_icon.set_vexpand(true);
-        back_icon.set_hexpand(true);
-        back_icon.set_halign(gtk::Align::Center);
-        back_icon.set_valign(gtk::Align::Center);
-        let back_click_gesture = GestureClick::builder().button(0).build();
-        back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackPressed);
+        let submit_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: modules.submit.icon.default.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::SubmitPressed,
+            });
+        let submit_button_widget = submit_button.widget();
+        submit_button_widget.set_hexpand(true);
+        submit_button_widget.set_halign(gtk::Align::End);
 
-        }));
-
-        back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output_sender().send(Message::BackPressed);
-
-        }));
-        back_icon_button.add_controller(back_click_gesture);
-        back_icon_button.append(&back_icon);
-        footer_expand_box.append(&back_icon_button);
-
-        let add_icon_button = gtk::Box::builder()
-            .vexpand(false)
-            .hexpand(true)
-            .halign(gtk::Align::End)
-            .valign(gtk::Align::End)
-            .css_classes(["footer-back-icon"])
-            .build();
-
-        let add_icon = get_image_from_path(modules.submit.icon.default.clone(), &["back-icon"]);
-        add_icon.set_vexpand(true);
-        add_icon.set_hexpand(true);
-        add_icon.set_halign(gtk::Align::Center);
-        add_icon.set_valign(gtk::Align::Center);
-
-        let add_click_gesture = GestureClick::builder().button(0).build();
-        add_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackPressed);
-
-        }));
-
-        // add_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-        //         info!("gesture button released is {}", this.current_button());
-        //         let _ = sender.output_sender().send(Message::PairBluetoothPressed);
-
-        // }));
-
-        add_icon_button.append(&add_icon);
-        add_icon_button.add_controller(add_click_gesture);
-
-        footer_expand_box.append(&add_icon_button);
-        footer.append(&footer_expand_box);
+        footer.append(submit_button_widget);
         root.append(&footer);
 
         let model = SetDatePage { settings: init };
 
-        // let widgets = SetDatePageWidgets { code_input };
-        let widgets = SetDatePageWidgets {};
+        let widgets = SetDatePageWidgets {
+            back_button,
+            submit_button,
+        };
 
         ComponentParts { model, widgets }
     }
@@ -180,6 +150,7 @@ impl SimpleComponent for SetDatePage {
             Message::HomeIconPressed => {
                 sender.output(Message::HomeIconPressed);
             }
+            Message::SubmitPressed => {},
         }
     }
 

@@ -1,18 +1,12 @@
-use custom_utils::get_image_from_path;
-use gtk::{glib::clone, prelude::*};
+use gtk::prelude::*;
 use relm4::{
-    gtk::{self, GestureClick},
-    ComponentParts, ComponentSender, SimpleComponent,
+    gtk::{self},
+    ComponentParts, ComponentSender, SimpleComponent, Controller, Component, ComponentController,
 };
 
-use crate::{
-    settings::{LayoutSettings, Modules, WidgetConfigs},
-    widgets::{
-        custom_network_item::{
-            CustomNetworkItem, CustomNetworkItemSettings, Message as CustomNetworkItemMessage,
-        },
-        menu_item::{MenuItem, MenuItemSettings, Message as MenuItemMessage},
-    },
+use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
+use custom_widgets::icon_button::{
+    IconButton, IconButtonCss, InitSettings as IconButtonStetings, OutputMessage as IconButtonOutputMessage,
 };
 
 use tracing::info;
@@ -30,7 +24,9 @@ pub struct BluetoothDetailsPage {
 }
 
 //Widgets
-pub struct BluetoothDetailsPageWidgets {}
+pub struct BluetoothDetailsPageWidgets {
+    back_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
@@ -119,39 +115,27 @@ impl SimpleComponent for BluetoothDetailsPage {
         .css_classes(["footer"])
         .hexpand(true)
         .vexpand(true)
+        .valign(gtk::Align::End)
         .build();
 
-        let back_icon_button = gtk::Box::builder()
-            .vexpand(false)
-            .hexpand(false)
-            .valign(gtk::Align::End)
-            .halign(gtk::Align::Start)
-            .css_classes(["footer-back-icon"])
-            .build();
-        let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
-        back_icon.set_vexpand(true);
-        back_icon.set_hexpand(true);
-        back_icon.set_halign(gtk::Align::Center);
-        back_icon.set_valign(gtk::Align::Center);
-        let back_click_gesture = GestureClick::builder().button(0).build();
-        back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackPressed);
-        }));
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
 
-        back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output_sender().send(Message::BackPressed);
-        }));
-        back_icon_button.append(&back_icon);
-        back_icon_button.add_controller(back_click_gesture);
-
-        footer.append(&back_icon_button);
+        footer.append(back_button.widget());
         root.append(&footer);
 
         let model = BluetoothDetailsPage { settings: init };
 
-        let widgets = BluetoothDetailsPageWidgets {};
+        let widgets = BluetoothDetailsPageWidgets {
+            back_button
+        };
 
         ComponentParts { model, widgets }
     }

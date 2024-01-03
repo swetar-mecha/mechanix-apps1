@@ -46,21 +46,13 @@
     min-height: 42px;
     min-width: 42px;
 }
-
-/* settings page css ends starts  */
+/* settings page css ends */
 
 
 /* footer css starts */
 .footer {
     min-height: 64px;
-    padding: 8px 0px 8px 0px;
-}
-
-.footer-back-icon {
-    min-width: 48px;
-    min-height: 48px;
-    border-radius: 6px;
-    background: #15171D;
+    padding: 8px 0px;
 }
 
 .footer-btn-box {
@@ -68,24 +60,7 @@
     border-radius: 12px;
     background: #15171D; 
 }
-
-.back-button {
-    min-width: 38px;
-    min-height: 38px;
-    border-radius: 9px;
-    /* border: 1px solid #15171D; */
-    background: #15171D;
-    box-shadow: 0px 4.80001px 4.80001px 0px rgba(31, 33, 35, 0.35);
-}
-
-.submit-button {
-    min-width: 38px;
-    min-height: 38px;
-    border-radius: 9px;
-    /* border: 1px solid #15171D; */
-    background: #15171D;
-    box-shadow: 0px 4.80001px 4.80001px 0px rgba(31, 33, 35, 0.35);
-}
+ 
 /* footer css ends */
 
 
@@ -303,26 +278,28 @@ background: rgba(0, 0, 0, 0.6);
 
 /* .password-home-button-pressing {
     background: rgba(0,0,0,0.8);
-} */
+} */ 
 
 .icon-button-root-default {
-    padding: 15px;
+    padding: 0px;
+
 }
 
 .icon-button-container-default {
-    min-width: 36px;
-    min-height: 36px;
     padding: 10px;
-    border-radius: 9px;
+    border-radius: 6px;
+    background: rgba(21, 23, 29, 1);
     /* border: 1px solid #000000; */
-    background: rgba(0, 0, 0, 0.6);
 }
 
 .icon-button-container-pressing-default {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgb(39, 41, 51);
 }
 
-.icon-button-icon-default {}
+.icon-button-icon-default {
+    min-width: 30px;
+    min-height: 30px;
+}
 
 .icon-input-root-default {
     padding: 14px 12px;
@@ -498,13 +475,6 @@ background: rgba(0, 0, 0, 0.6);
     font-style: normal;
     font-weight: 300;
     line-height: normal;
-}
-
-.footer-icon-button {
-    min-width: 48px;
-    min-height: 48px;
-    border-radius: 6px;
-    background: #15171D;
 }
 
 .cancel-btn-txt {

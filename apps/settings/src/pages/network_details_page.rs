@@ -1,12 +1,12 @@
-use custom_utils::get_image_from_path;
-use gtk::{glib::clone, prelude::*};
+use gtk::prelude::*;
 use relm4::{
-    gtk::{self, GestureClick},
-    ComponentParts, ComponentSender, SimpleComponent,
+    gtk::{self},
+    Component, ComponentController, ComponentParts, ComponentSender, Controller, SimpleComponent,
 };
-
 use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
-
+use custom_widgets::icon_button::{
+    IconButton, IconButtonCss, InitSettings as IconButtonStetings, OutputMessage as IconButtonOutputMessage,
+};
 use tracing::info;
 
 //Init Settings
@@ -22,12 +22,16 @@ pub struct NetworkDetailsPage {
 }
 
 //Widgets
-pub struct NetworkDetailsPageWidgets {}
+pub struct NetworkDetailsPageWidgets {
+    back_button: Controller<IconButton>,
+    remove_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     BackPressed,
+    RemovePressed,
     HomeIconPressed,
 }
 
@@ -251,68 +255,48 @@ impl SimpleComponent for NetworkDetailsPage {
             .build();
         root.append(&scrolled_window);
 
-
         let footer = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .css_classes(["footer"])
-            .hexpand(true)
-            .vexpand(true)
-            .build();
-
-
-        let footer_expand_box = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .hexpand(true)
-            .valign(gtk::Align::End)
-            .build();
-     
-        let back_icon_button = gtk::Box::builder()
-        .vexpand(false)
-        .hexpand(false)
-        .css_classes(["footer-back-icon"])
-        .build();
-        let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
-        back_icon.set_vexpand(true);
-        back_icon.set_hexpand(true);
-        back_icon.set_halign(gtk::Align::Center);
-        back_icon.set_valign(gtk::Align::Center);
-        let left_click_gesture = GestureClick::builder().button(0).build();
-        left_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-        }));
-
-        left_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output(Message::BackPressed);
-        }));
-
-        back_icon_button.append(&back_icon); 
-        back_icon_button.add_controller(left_click_gesture);
-        footer_expand_box.append(&back_icon_button);
-
-        let trash_icon_button = gtk::Box::builder()
-        .vexpand(false)
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["footer"])
+        .vexpand(true)
         .hexpand(true)
-        .halign(gtk::Align::End)
         .valign(gtk::Align::End)
-        .css_classes(["footer-back-icon"])
         .build();
 
-        let trash_icon = get_image_from_path(widget_configs.footer.trash_icon, &["back-icon"]);
-        trash_icon.set_vexpand(true);
-        trash_icon.set_hexpand(true);
-        trash_icon.set_halign(gtk::Align::Center);
-        trash_icon.set_valign(gtk::Align::Center);
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
+        footer.append(back_button.widget());
 
-        trash_icon_button.append(&trash_icon); 
-        footer_expand_box.append(&trash_icon_button);
+        let remove_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.trash_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::RemovePressed,
+            });
+        let remove_button_widget = remove_button.widget();
+        remove_button_widget.set_hexpand(true);
+        remove_button_widget.set_halign(gtk::Align::End);
 
-        footer.append(&footer_expand_box);
+        footer.append(remove_button_widget);
+        root.append(&footer);
         root.append(&footer);
 
         let model = NetworkDetailsPage { settings: init };
 
-        let widgets = NetworkDetailsPageWidgets {};
+        let widgets = NetworkDetailsPageWidgets {
+            back_button,
+            remove_button
+        };
 
         ComponentParts { model, widgets }
     }
@@ -326,6 +310,7 @@ impl SimpleComponent for NetworkDetailsPage {
             Message::HomeIconPressed => {
                 sender.output(Message::HomeIconPressed);
             }
+            Message::RemovePressed => {}
         }
     }
 

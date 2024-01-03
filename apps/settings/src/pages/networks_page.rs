@@ -1,8 +1,8 @@
-use custom_utils::get_image_from_path;
 use gtk::{glib::clone, prelude::*};
+use custom_utils::get_image_from_path;
 use relm4::{
     gtk::{self, GestureClick},
-    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent,
+    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller,
 };
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
@@ -10,6 +10,9 @@ use crate::{
         CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
     }
 };
+use custom_widgets::icon_button::{
+        IconButton, IconButtonCss, InitSettings as IconButtonStetings, OutputMessage as IconButtonOutputMessage,
+    };
 use tracing::info;
 
 //Init Settings
@@ -25,7 +28,9 @@ pub struct NetworksPage {
 }
 
 //Widgets
-pub struct NetworksPageWidgets {}
+pub struct NetworksPageWidgets {
+    back_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
@@ -254,46 +259,35 @@ impl SimpleComponent for NetworksPage {
             .min_content_height(360)
             .child(&scrollable_content)
             .build();
-        root.append(&scrolled_window);
+        root.append(&scrolled_window); 
 
         let footer = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .css_classes(["footer"])
-            .hexpand(true)
-            .vexpand(true)
-            .build();
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["footer"])
+        .hexpand(true)
+        .vexpand(true)
+        .valign(gtk::Align::End)
+        .build();
 
-        let back_icon_button = gtk::Box::builder()
-            .vexpand(false)
-            .hexpand(false)
-            .valign(gtk::Align::End)
-            .css_classes(["footer-back-icon"])
-            .build();
-        let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
-        back_icon.set_vexpand(true);
-        back_icon.set_hexpand(true);
-        back_icon.set_halign(gtk::Align::Center);
-        back_icon.set_valign(gtk::Align::Center);
-        let back_click_gesture = GestureClick::builder().button(0).build();
-        back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-        }));
+        
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
 
-        back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                            info!("gesture button released is {}", this.current_button());
-                let _ = sender.output(Message::BackPressed);
-        }));
-
-        back_icon_button.append(&back_icon);
-        back_icon_button.add_controller(back_click_gesture);
-
-        footer.append(&back_icon_button);
-
+        footer.append(back_button.widget());
         root.append(&footer);
 
         let model = NetworksPage { settings: init };
 
-        let widgets = NetworksPageWidgets {};
+        let widgets = NetworksPageWidgets {
+            back_button
+        };
 
         ComponentParts { model, widgets }
     }

@@ -1,17 +1,17 @@
-use custom_utils::get_image_from_path;
-use gtk::{glib::clone, prelude::*};
+use gtk::prelude::*;
 use relm4::{
-    gtk::{self, GestureClick},
-    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent,
+    gtk::{self},
+    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller,
 };
 
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
-    widgets::{
-        custom_list_item::{
+    widgets::custom_list_item::{
             CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
-        }, 
-    },
+        },
+};
+use custom_widgets::icon_button::{
+    IconButton, IconButtonCss, InitSettings as IconButtonStetings, OutputMessage as IconButtonOutputMessage,
 };
 use tracing::info;
 
@@ -28,7 +28,9 @@ pub struct EthernetPage {
 }
 
 //Widgets
-pub struct EthernetPageWidgets {}
+pub struct EthernetPageWidgets {
+    back_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
@@ -144,8 +146,6 @@ impl SimpleComponent for EthernetPage {
             .build();
         root.append(&scrolled_window);
 
-
-
         let footer = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .css_classes(["footer"])
@@ -154,39 +154,24 @@ impl SimpleComponent for EthernetPage {
         .valign(gtk::Align::End)
         .build();
 
-        let back_icon_button = gtk::Box::builder()
-            .vexpand(false)
-            .hexpand(false)
-            .valign(gtk::Align::Center)
-            .css_classes(["footer-back-icon"])
-            .build();
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
 
-        let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
-        back_icon.set_vexpand(true);
-        back_icon.set_hexpand(true);
-        back_icon.set_halign(gtk::Align::Center);
-        back_icon.set_valign(gtk::Align::Center);
-        let left_click_gesture = GestureClick::builder().button(0).build();
-        left_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackPressed);
-
-        }));
-
-        left_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output_sender().send(Message::BackPressed);
-
-        }));
-        back_icon_button.add_controller(left_click_gesture);
-        back_icon_button.append(&back_icon);
-        footer.append(&back_icon_button);
-
+        footer.append(back_button.widget());
         root.append(&footer);
 
         let model = EthernetPage { settings: init };
 
-        let widgets = EthernetPageWidgets {};
+        let widgets = EthernetPageWidgets {
+            back_button
+        };
 
         ComponentParts { model, widgets }
     }

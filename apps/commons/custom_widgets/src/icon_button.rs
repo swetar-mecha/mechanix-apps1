@@ -107,6 +107,7 @@ impl SimpleComponent for IconButton {
                     None => (),
                 };
                 container_box.append(&icon_image);
+
                 let left_click_gesture = GestureClick::builder().button(0).build();
                 left_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
                 info!("gesture button pressed is {}", this.current_button());
