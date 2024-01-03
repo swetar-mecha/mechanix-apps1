@@ -77,20 +77,11 @@ impl SimpleComponent for DateTimePage {
         let header_title = gtk::Label::builder()
             .label("Date & Time")
             .css_classes(["header-title"])
-            .build();
-
-        // modules.pages_settings.sound.display_icon.clone(),
-        let header_icon: gtk::Image = get_image_from_path(
-            modules.pages_settings.dateandtime.display_icon.clone(),
-            &["header-icon"],
-        );
-
+            .build(); 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
-            .build();
-
-        header.append(&header_icon);
+            .build(); 
         header.append(&header_title);
 
         let auto_time_box = gtk::Box::builder()

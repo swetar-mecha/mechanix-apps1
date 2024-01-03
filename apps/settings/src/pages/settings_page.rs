@@ -78,16 +78,11 @@ impl SimpleComponent for SettingsPage {
         let header_title = gtk::Label::builder()
             .label(modules.settings.title.clone())
             .css_classes(["header-title"])
-            .build();
-
-        let header_icon = get_image_from_path(modules.settings.icon.clone(), &["header-icon"]);
-
+            .build(); 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
-            .build();
-
-        header.append(&header_icon);
+            .build(); 
         header.append(&header_title);
 
         let mut settings_menu_items: FactoryVecDeque<MenuItem> = FactoryVecDeque::builder()

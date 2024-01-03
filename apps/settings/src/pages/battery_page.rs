@@ -77,18 +77,14 @@ impl SimpleComponent for BatteryPage {
             .label("Battery")
             .css_classes(["header-title"])
             .build();
-
         let header_icon = get_image_from_path(
             modules.pages_settings.battery.display_icon.clone(),
             &["header-icon"],
         );
-
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
-
-        header.append(&header_icon);
         header.append(&header_title);
 
         let battery_label = gtk::Label::builder()

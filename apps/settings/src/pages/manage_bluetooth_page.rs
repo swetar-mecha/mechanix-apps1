@@ -74,22 +74,12 @@ impl SimpleComponent for ManageBluetoothPage {
         let header_title = gtk::Label::builder()
             .label("Bluetooth")
             .css_classes(["header-title"])
-            .build();
-
-        let header_icon = get_image_from_path(
-            modules.pages_settings.bluetooth.bluetooth_icon.clone(),
-            &["header-icon"],
-        );
-
+            .build(); 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
-            .build();
-
-        header.append(&header_icon);
+            .build(); 
         header.append(&header_title);
-
-
         
         let bluetooth_status_label = gtk::Label::builder()
         .label("Bluetooth")

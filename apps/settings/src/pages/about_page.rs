@@ -67,31 +67,21 @@ impl SimpleComponent for AboutPage {
             .label("About")
             .css_classes(["header-title"])
             .build();
-
-        let header_icon: gtk::Image = get_image_from_path(
-            modules.pages_settings.about.display_icon.clone(),
-            &["header-icon"],
-        );
-
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
-
-        header.append(&header_icon);
         header.append(&header_title);
 
         let about_details_list1 = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .css_classes(["settings-item-details-box"])
             .build();
-
         
         let about_details_list2 = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .css_classes(["settings-item-details-box"])
             .build();
-
 
         let about_details_row_1 = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)

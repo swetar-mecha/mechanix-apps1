@@ -76,12 +76,10 @@ impl SimpleComponent for ManageNetworksPage {
             .label("Manage Networks")
             .css_classes(["header-title"])
             .build();
-
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
-        // header.append(&header_icon);
         header.append(&header_title);
 
         let known_networks_label = gtk::Label::builder()

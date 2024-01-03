@@ -74,19 +74,11 @@ impl SimpleComponent for DisplayPage {
         let header_title = gtk::Label::builder()
             .label("Display")
             .css_classes(["header-title"])
-            .build();
-
-        let header_icon = get_image_from_path(
-            modules.pages_settings.display.display_icon.clone(),
-            &["header-icon"],
-        );
-
+            .build(); 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
-            .build();
-
-        header.append(&header_icon);
+            .build(); 
         header.append(&header_title);
 
         let brigntness_label = gtk::Label::builder()
