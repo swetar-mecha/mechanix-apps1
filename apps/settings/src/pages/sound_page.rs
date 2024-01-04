@@ -1,11 +1,14 @@
+use gtk::prelude::*;
 use custom_utils::get_image_from_path;
-use gtk::prelude::BoxExt;
 use relm4::{
-    gtk, ComponentParts, ComponentSender, SimpleComponent,
+    gtk::{self},
+    Component, ComponentController, ComponentParts, ComponentSender, Controller, SimpleComponent,
 };
-
+use custom_widgets::icon_button::{
+    IconButton, IconButtonCss, InitSettings as IconButtonStetings,
+    InputMessage as IconButtonInputMessage, OutputMessage as IconButtonOutputMessage,
+};
 use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
-
 use tracing::info;
 
 //Init Settings
@@ -21,13 +24,17 @@ pub struct SoundPage {
 }
 
 //Widgets
-pub struct SoundPageWidgets {}
+pub struct SoundPageWidgets {
+    back_button: Controller<IconButton>,
+    submit_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     MenuItemPressed(String),
-    BackSpacePressed,
+    BackPressed,
+    SubmitPressed,
     HomeIconPressed,
 }
 
@@ -64,18 +71,10 @@ impl SimpleComponent for SoundPage {
             .label("Sound")
             .css_classes(["header-title"])
             .build();
-
-        let header_icon = get_image_from_path(
-            modules.pages_settings.sound.display_icon.clone(),
-            &["header-icon"],
-        );
-
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
-
-        header.append(&header_icon);
         header.append(&header_title);
 
         let output_volume_label = gtk::Label::builder()
@@ -96,6 +95,7 @@ impl SimpleComponent for SoundPage {
             )
             .orientation(gtk::Orientation::Horizontal)
             .value_pos(gtk::PositionType::Right)
+            .css_classes(["custom-scale"])
             .build();
 
         let output_volumes_items = gtk::Box::builder()
@@ -116,14 +116,52 @@ impl SimpleComponent for SoundPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(&scrollable_content)
             .build();
         root.append(&scrolled_window);
 
+        let footer = gtk::Box::builder()
+            .orientation(gtk::Orientation::Horizontal)
+            .css_classes(["footer"])
+            .vexpand(true)
+            .hexpand(true)
+            .valign(gtk::Align::End)
+            .build();
+
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
+
+        footer.append(back_button.widget());
+
+        let submit_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: modules.submit.icon.default.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::SubmitPressed,
+            });
+        let submit_button_widget = submit_button.widget();
+        submit_button_widget.set_hexpand(true);
+        submit_button_widget.set_halign(gtk::Align::End);
+
+        footer.append(submit_button_widget);
+        root.append(&footer);
+
         let model = SoundPage { settings: init };
 
-        let widgets = SoundPageWidgets {};
+        let widgets = SoundPageWidgets {
+            back_button,
+            submit_button,
+        };
 
         ComponentParts { model, widgets }
     }
@@ -132,9 +170,11 @@ impl SimpleComponent for SoundPage {
         info!("Update message is {:?}", message);
         match message {
             Message::MenuItemPressed(key) => {}
-            Message::BackSpacePressed => {}
-            Message::HomeIconPressed => {
+            Message::BackPressed => {
+                let _ = sender.output(Message::BackPressed);
             }
+            Message::HomeIconPressed => {}
+            Message::SubmitPressed => {}
         }
     }
 

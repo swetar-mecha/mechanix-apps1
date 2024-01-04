@@ -1,14 +1,13 @@
 use gtk::prelude::*;
+use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
 use relm4::{
     gtk::{self},
-    ComponentParts, ComponentSender, SimpleComponent, Controller, Component, ComponentController,
+    Component, ComponentParts, ComponentSender, SimpleComponent, Controller, ComponentController,
 };
-
-use crate::settings::{LayoutSettings, Modules, WidgetConfigs};
 use custom_widgets::icon_button::{
-    IconButton, IconButtonCss, InitSettings as IconButtonStetings, OutputMessage as IconButtonOutputMessage,
+    IconButton, IconButtonCss, InitSettings as IconButtonStetings,
+    InputMessage as IconButtonInputMessage, OutputMessage as IconButtonOutputMessage,
 };
-
 use tracing::info;
 
 //Init Settings
@@ -19,33 +18,34 @@ pub struct Settings {
 }
 
 //Model
-pub struct BluetoothDetailsPage {
+pub struct SetDatePage {
     settings: Settings,
 }
 
 //Widgets
-pub struct BluetoothDetailsPageWidgets {
+pub struct SetDatePageWidgets {
     back_button: Controller<IconButton>,
+    submit_button: Controller<IconButton>,
 }
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
-    MenuItemPressed(String),
     BackPressed,
     HomeIconPressed,
+    SubmitPressed
 }
 
 pub struct SettingItem {
     name: String,
 }
 
-impl SimpleComponent for BluetoothDetailsPage {
+impl SimpleComponent for SetDatePage {
     type Init = Settings;
     type Input = Message;
     type Output = Message;
     type Root = gtk::Box;
-    type Widgets = BluetoothDetailsPageWidgets;
+    type Widgets = SetDatePageWidgets;
 
     fn init_root() -> Self::Root {
         gtk::Box::builder()
@@ -63,58 +63,43 @@ impl SimpleComponent for BluetoothDetailsPage {
         let layout = init.layout.clone();
         let widget_configs = init.widget_configs.clone();
 
-        let network_name = gtk::Label::builder()
-            .label("Macbook Pro")
-            .css_classes(["header-title"])
-            .build();
-
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
 
-        header.append(&network_name);
-
-        let device_type_label = gtk::Label::builder()
-            .label("Device Type")
-            .css_classes(["bluetooth-details-list-label"])
-            .halign(gtk::Align::Start)
+        let header_title = gtk::Label::builder()
+            .label("Set Date")
+            .css_classes(["header-title"])
             .build();
 
-        let device_type_box = gtk::Box::builder()
-            .orientation(gtk::Orientation::Vertical)
-            .css_classes(["bluetooth-details-device-type-box"])
-            .build();
+        header.append(&header_title);
 
-        let device_type_value = gtk::Label::builder()
-            .label("Mecha MX")
-            .css_classes(["bluetooth-details-device-type-value"])
-            .halign(gtk::Align::Start)
+        let calendar = gtk::Calendar::builder()
+            .vexpand_set(true)
+            .hexpand_set(true)
+            .height_request(modules.pages_settings.dateandtime.window_size.1)
+            .width_request(modules.pages_settings.dateandtime.window_size.0)
             .build();
-        device_type_box.append(&device_type_value);
+        calendar.style_context().add_class("custom-calendar");
 
-        let forget_network_button = gtk::Box::builder()
-            .orientation(gtk::Orientation::Vertical)
-            .css_classes(["bluetooth-details-forget-btn-box"])
-            .build();
+        calendar.connect_day_selected(|cal| {
+            let year = cal.year();
+            let month = cal.month();
+            let day = cal.day();
 
-        let forget_network_text = gtk::Label::builder()
-            .label("Forget this network")
-            .css_classes(["bluetooth-details-forget-btn-text"])
-            .halign(gtk::Align::Center)
-            .build();
-        forget_network_button.append(&forget_network_text);
+            info!("Selected Date: {:?}-{:?}-{:?}", &year, &month, &day);
+        });
 
         root.append(&header);
-        root.append(&device_type_label);
-        root.append(&device_type_box);
-        root.append(&forget_network_button);
+        root.append(&calendar);
 
+        
         let footer = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .css_classes(["footer"])
-        .hexpand(true)
         .vexpand(true)
+        .hexpand(true)
         .valign(gtk::Align::End)
         .build();
 
@@ -129,12 +114,28 @@ impl SimpleComponent for BluetoothDetailsPage {
             });
 
         footer.append(back_button.widget());
+
+        let submit_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: modules.submit.icon.default.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::SubmitPressed,
+            });
+        let submit_button_widget = submit_button.widget();
+        submit_button_widget.set_hexpand(true);
+        submit_button_widget.set_halign(gtk::Align::End);
+
+        footer.append(submit_button_widget);
         root.append(&footer);
 
-        let model = BluetoothDetailsPage { settings: init };
+        let model = SetDatePage { settings: init };
 
-        let widgets = BluetoothDetailsPageWidgets {
-            back_button
+        let widgets = SetDatePageWidgets {
+            back_button,
+            submit_button,
         };
 
         ComponentParts { model, widgets }
@@ -143,12 +144,13 @@ impl SimpleComponent for BluetoothDetailsPage {
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
         info!("Update message is {:?}", message);
         match message {
-            Message::MenuItemPressed(key) => {}
-            Message::BackPressed => {  
-                let _ = sender.output(Message::BackPressed);}
-            Message::HomeIconPressed => {
-                let _ = sender.output(Message::HomeIconPressed);
+            Message::BackPressed => {
+                let _ = sender.output(Message::BackPressed);
             }
+            Message::HomeIconPressed => {
+                sender.output(Message::HomeIconPressed);
+            }
+            Message::SubmitPressed => {},
         }
     }
 

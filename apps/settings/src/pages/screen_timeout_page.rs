@@ -1,8 +1,8 @@
-use gtk::prelude::BoxExt;
+use gtk::prelude::*;
 use relm4::{
-    gtk, Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent,
+    gtk::{self},
+    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller,
 };
-
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
     widgets::custom_list_radio_button::{
@@ -10,7 +10,10 @@ use crate::{
             Message as CustomListRadioButtonMessage,
         },
 };
-
+use custom_widgets::icon_button::{
+    IconButton, IconButtonCss, InitSettings as IconButtonStetings,
+    InputMessage as IconButtonInputMessage, OutputMessage as IconButtonOutputMessage,
+};
 use tracing::info;
 
 //Init Settings
@@ -26,14 +29,18 @@ pub struct ScreenTimeoutPage {
 }
 
 //Widgets
-pub struct ScreenTimeoutPageWidgets {}
+pub struct ScreenTimeoutPageWidgets {
+    back_button: Controller<IconButton>,
+    submit_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     MenuItemPressed(String),
-    BackSpacePressed,
+    BackPressed,
     HomeIconPressed,
+    SubmitPressed
 }
 
 pub struct SettingItem {
@@ -193,14 +200,52 @@ impl SimpleComponent for ScreenTimeoutPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(&scrollable_content)
             .build();
         root.append(&scrolled_window);
 
+        let footer = gtk::Box::builder()
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["footer"])
+        .vexpand(true)
+        .hexpand(true)
+        .valign(gtk::Align::End)
+        .build();
+
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
+
+        footer.append(back_button.widget());
+
+        let submit_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: modules.submit.icon.default.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::SubmitPressed,
+            });
+        let submit_button_widget = submit_button.widget();
+        submit_button_widget.set_hexpand(true);
+        submit_button_widget.set_halign(gtk::Align::End);
+
+        footer.append(submit_button_widget);
+        root.append(&footer);
+
         let model = ScreenTimeoutPage { settings: init };
 
-        let widgets = ScreenTimeoutPageWidgets {};
+        let widgets = ScreenTimeoutPageWidgets {
+            back_button,
+            submit_button,
+        };
 
         ComponentParts { model, widgets }
     }
@@ -209,8 +254,11 @@ impl SimpleComponent for ScreenTimeoutPage {
         info!("Update message is {:?}", message);
         match message {
             Message::MenuItemPressed(key) => {}
-            Message::BackSpacePressed => {}
+            Message::BackPressed => {
+                let _ = sender.output(Message::BackPressed);
+            }
             Message::HomeIconPressed => {}
+            Message::SubmitPressed => {},
         }
     }
 

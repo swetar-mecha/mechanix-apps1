@@ -1,15 +1,18 @@
-use custom_utils::get_image_from_path;
 use gtk::{glib::clone, prelude::*};
+use custom_utils::get_image_from_path;
 use relm4::{
     gtk::{self, GestureClick},
-    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent,
+    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller,
 };
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
     widgets::custom_list_item::{
         CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
-    },
+    }
 };
+use custom_widgets::icon_button::{
+        IconButton, IconButtonCss, InitSettings as IconButtonStetings, OutputMessage as IconButtonOutputMessage,
+    };
 use tracing::info;
 
 //Init Settings
@@ -25,16 +28,22 @@ pub struct NetworksPage {
 }
 
 //Widgets
-pub struct NetworksPageWidgets {}
+pub struct NetworksPageWidgets {
+    back_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
 pub enum Message { 
-    BackPressed,
+BackPressed,
     EnableNetworkPressed,
     ManageNetworkPressed,
+    IpSettingsPressed,
+    EthernetPressed,
+    DNSPressed,
     HomeIconPressed,
 }
+
 
 pub struct SettingItem {
     text: String,
@@ -69,18 +78,10 @@ impl SimpleComponent for NetworksPage {
             .label("Network")
             .css_classes(["header-title"])
             .build();
-
-        let header_icon = get_image_from_path(
-            modules.pages_settings.network.network_icon.clone(),
-            &["header-icon"],
-        );
-
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
             .build();
-
-        header.append(&header_icon);
         header.append(&header_title);
 
         let wifi_label = gtk::Label::builder()
@@ -94,13 +95,13 @@ impl SimpleComponent for NetworksPage {
 
         let network_details = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .css_classes(["network-details-box"])
+            .css_classes(["settings-item-details-box"])
             .build();
 
         let enable_network_row = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .hexpand(true)
-            .css_classes(["network-details-box-row"])
+            .css_classes(["settings-item-details-box-row"])
             .build();
 
         let enable_network_text = gtk::Label::builder()
@@ -123,14 +124,14 @@ impl SimpleComponent for NetworksPage {
         let enabled_network_row = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["network-details-box-row"])
+        .css_classes(["settings-item-details-box-row"])
         .build();
 
         let enabled_network_text = gtk::Label::builder()
         .label("Actonate Office net1")
         .hexpand(true)
         .halign(gtk::Align::Start)
-        .css_classes(["network-details-box-row-key"])
+        .css_classes(["settings-item-details-box-row-key"])
         .build();
 
 
@@ -151,8 +152,8 @@ impl SimpleComponent for NetworksPage {
         }));
 
         network_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output(Message::EnableNetworkPressed);
+            info!("gesture button released is {}", this.current_button());
+            let _ = sender.output(Message::EnableNetworkPressed);
         }));
         enabled_network_row.add_controller(network_click_gesture);
 
@@ -161,6 +162,7 @@ impl SimpleComponent for NetworksPage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "Manage Networks".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
@@ -174,12 +176,13 @@ impl SimpleComponent for NetworksPage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "Ip Settings".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
                 match msg {
-                    CustomListItemMessage::WidgetClicked => Message::HomeIconPressed,
+                    CustomListItemMessage::WidgetClicked => Message::IpSettingsPressed,
                 }
             });
 
@@ -201,12 +204,13 @@ impl SimpleComponent for NetworksPage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "Ethernet".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
                 match msg {
-                    CustomListItemMessage::WidgetClicked => Message::HomeIconPressed,
+                    CustomListItemMessage::WidgetClicked => Message::EthernetPressed,
                 }
             });
         let ethernet_widget = ethernet.widget();
@@ -215,12 +219,13 @@ impl SimpleComponent for NetworksPage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "DNS".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
                 match msg {
-                    CustomListItemMessage::WidgetClicked => Message::HomeIconPressed,
+                    CustomListItemMessage::WidgetClicked => Message::DNSPressed,
                 }
             });
         let dns_widget = dns.widget();
@@ -244,49 +249,37 @@ impl SimpleComponent for NetworksPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(&scrollable_content)
             .build();
-        root.append(&scrolled_window);
+        root.append(&scrolled_window); 
 
         let footer = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .css_classes(["footer"])
-            .hexpand(true)
-            .vexpand(true)
-            .build();
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["footer"])
+        .hexpand(true)
+        .vexpand(true)
+        .valign(gtk::Align::End)
+        .build();
 
-        let back_icon_button = gtk::Box::builder()
-            .vexpand(false)
-            .hexpand(false)
-            .valign(gtk::Align::End)
-            .css_classes(["footer-icon-button"])
-            .build();
-        let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
-        back_icon.set_vexpand(true);
-        back_icon.set_hexpand(true);
-        back_icon.set_halign(gtk::Align::Center);
-        back_icon.set_valign(gtk::Align::Center);
-        let back_click_gesture = GestureClick::builder().button(0).build();
-        back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-        }));
+        
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
 
-        back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output(Message::BackPressed);
-        }));
-
-        back_icon_button.append(&back_icon);
-        back_icon_button.add_controller(back_click_gesture);
-
-        footer.append(&back_icon_button);
-
+        footer.append(back_button.widget());
         root.append(&footer);
 
         let model = NetworksPage { settings: init };
 
-        let widgets = NetworksPageWidgets {};
+        let widgets = NetworksPageWidgets {
+            back_button
+        };
 
         ComponentParts { model, widgets }
     }
@@ -295,16 +288,25 @@ impl SimpleComponent for NetworksPage {
         info!("Networks- Update message is {:?}", message);
         match message {
             Message::BackPressed => {
-                let _ = sender.output(Message::BackPressed);
+            let _ = sender.output(Message::BackPressed);
             },
             Message::EnableNetworkPressed => {
                 let _ = sender.output(Message::EnableNetworkPressed);
             },
             Message::ManageNetworkPressed => {
                 let _ = sender.output(Message::ManageNetworkPressed);
-            },
+                            },
             Message::HomeIconPressed => {
                 let _ = sender.output(Message::HomeIconPressed);
+            }
+            Message::IpSettingsPressed => {
+                let _ = sender.output(Message::IpSettingsPressed);
+            }
+            Message::EthernetPressed => {
+                let _ = sender.output(Message::EthernetPressed);
+            }
+            Message::DNSPressed => {
+                let _ = sender.output(Message::DNSPressed);
             }
         }
     }

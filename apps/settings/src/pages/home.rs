@@ -1,6 +1,6 @@
-use gtk::{gdk, gio, glib::clone, prelude::*, subclass::*};
+use gtk::prelude::*;
 use relm4::{
-    gtk::{self, gdk::BUTTON_PRIMARY, GestureClick},
+    gtk::{self},
     Component, ComponentController, ComponentParts, ComponentSender, Controller, SimpleComponent,
 };
 
@@ -44,8 +44,9 @@ impl SimpleComponent for HomePage {
         let footer = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["footer"])
-            .valign(gtk::Align::End)
+            .hexpand(true)
             .vexpand(true)
+            .valign(gtk::Align::End)
             .build();
 
         let password_screen_btn = IconButton::builder()

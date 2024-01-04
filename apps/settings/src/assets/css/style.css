@@ -21,11 +21,132 @@
     background: none;
 }
 
-.pin-auth-container {
+/* settings page css starts  */
+.page-container {
     min-width: 100%;
     min-height: 100%;
     background: rgba(0, 0, 0, 0.5);
     padding: 10px 20px;
+}
+
+.header {
+    padding: 0px 0px 18px 0px;
+}
+
+.header-title {
+    color: #FFF;
+    font-family: Space Grotesk;
+    font-size: 21px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}
+
+.header-icon {
+    min-height: 42px;
+    min-width: 42px;
+}
+/* settings page css ends */
+
+
+/* footer css starts */
+.footer {
+    min-height: 64px;
+    padding: 8px 0px;
+}
+
+.footer-btn-box {
+    padding: 17px 14px; 
+    border-radius: 12px;
+    background: #15171D; 
+}
+ 
+/* footer css ends */
+
+
+/* Network, About, Date-Time, Ethernet, etc css  */
+.settings-item-details-box {
+    padding: 0px 20px 0px 20px;
+    border-radius: 6px;
+    background: #15171D;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+    margin-bottom: 16px;
+}
+
+.settings-item-details-box-row {
+    border-bottom: 1px solid #202431;
+    padding: 16px 0px 16px 0px;
+}
+
+.settings-item-details-box-row-key {
+    color: #FAFBFC;
+    font-family: Space Grotesk;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.settings-item-details-box-row-value {
+    color: #848DA6;
+    font-family: Space Grotesk;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 300;
+    line-height: normal;
+}
+
+/* Manage network page  */ 
+.list-label {
+    margin-bottom: 6px;
+}
+
+/* custom widgets css */
+.custom-item-box {
+    border-radius: 4px;
+    background: #15171D;
+    min-height: 60px;
+    min-width: 100%;
+    padding: 0px 10px;
+    margin-bottom: 10px;
+}
+
+.custom-item-name {
+    color: #E4E9EE;
+    font-family: Space Grotesk;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-left: 6px;
+}
+
+.custom-item-box-focus {
+    color: #FDFDFD;
+}
+
+.custom-connected-icon {
+    min-width: 20px;
+    min-height: 20px;
+    margin-right: 8px;
+}
+
+.custom-private-icon {
+    min-width: 20px;
+    min-height: 20px;
+    margin-right: 8px;
+}
+
+.custom-strength-icon {
+    min-width: 20px;
+    min-height: 20px;
+    margin-right: 8px;
+}
+
+.custom-info-icon {
+    min-width: 20px;
+    min-height: 20px;
+    margin-right: 8px;
 }
 
 .password-key-box {
@@ -43,7 +164,6 @@
 
 .password-key-label {
     color: #E4E9EE;
-    text-align: center;
     font-family: Space Grotesk;
     font-size: 18px;
     font-style: normal;
@@ -140,24 +260,6 @@ entry :focus-within {
     margin-bottom: 14px;
 }
 
-.back-button {
-    min-width: 38px;
-    min-height: 38px;
-    border-radius: 9px;
-    /* border: 1px solid #15171D; */
-    background: #15171D;
-    box-shadow: 0px 4.80001px 4.80001px 0px rgba(31, 33, 35, 0.35);
-}
-
-.submit-button {
-    min-width: 38px;
-    min-height: 38px;
-    border-radius: 9px;
-    /* border: 1px solid #15171D; */
-    background: #15171D;
-    box-shadow: 0px 4.80001px 4.80001px 0px rgba(31, 33, 35, 0.35);
-}
-
 /* .password-home-icon {
 
 } */
@@ -172,33 +274,32 @@ background: rgba(0, 0, 0, 0.6);
 }
 
 */
-.footer {
-    min-height: 64px;
-    padding: 8px 0px 8px 0px;
-}
+
 
 /* .password-home-button-pressing {
     background: rgba(0,0,0,0.8);
-} */
+} */ 
 
 .icon-button-root-default {
-    padding: 15px;
+    padding: 0px;
+
 }
 
 .icon-button-container-default {
-    min-width: 36px;
-    min-height: 36px;
     padding: 10px;
-    border-radius: 9px;
+    border-radius: 6px;
+    background: rgba(21, 23, 29, 1);
     /* border: 1px solid #000000; */
-    background: rgba(0, 0, 0, 0.6);
 }
 
 .icon-button-container-pressing-default {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgb(39, 41, 51);
 }
 
-.icon-button-icon-default {}
+.icon-button-icon-default {
+    min-width: 30px;
+    min-height: 30px;
+}
 
 .icon-input-root-default {
     padding: 14px 12px;
@@ -208,6 +309,7 @@ background: rgba(0, 0, 0, 0.6);
 }
 
 .icon-input-root-focused-default {
+    /* .icon-input-root-focused-default { */
     /* border: 1px solid #3283E8; */
     background: rgba(0, 20, 61, 0.4);
 }
@@ -216,40 +318,10 @@ background: rgba(0, 0, 0, 0.6);
     padding: 10px;
 }
 
-.header {
-    padding: 0px 0px 18px 0px;
-}
-
-.header-title {
-    color: #FFF;
-    font-family: Space Grotesk;
-    font-size: 21px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: normal;
-}
-
-.header-icon {
-    min-height: 42px;
-    min-width: 42px;
-}
-
-/* updated css */
-.page-container {
-    min-width: 100%;
-    min-height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 10px 20px;
-}
-
-.list-label {
-    margin-bottom: 6px;
-}
-
 .custom-list-item-box {
     min-height: 60px;
     min-width: 100%;
-    padding: 0px 10px;
+    padding: 0px 20px;
     margin-bottom: 10px;
     border-radius: 6px;
     background: #15171D;
@@ -278,84 +350,6 @@ background: rgba(0, 0, 0, 0.6);
     min-height: 20px;
 }
 
-.custom-network-item-box {
-    border-radius: 4px;
-    background: #15171D;
-    min-height: 60px;
-    min-width: 100%;
-    padding: 0px 10px;
-    margin-bottom: 10px;
-}
-
-.custom-network-item-name {
-    color: #E4E9EE;
-    text-align: center;
-    font-family: Space Grotesk;
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
-    margin-left: 6px;
-}
-
-.custom-network-item-box-focus {
-    color: #FDFDFD;
-}
-
-.custom-network-item-connected-icon {
-    min-width: 20px;
-    min-height: 20px;
-    margin-right: 8px;
-}
-
-.custom-network-item-private-icon {
-    min-width: 20px;
-    min-height: 20px;
-    margin-right: 8px;
-}
-
-.custom-network-item-strength-icon {
-    min-width: 20px;
-    min-height: 20px;
-    margin-right: 8px;
-}
-
-.custom-network-item-info-icon {
-    min-width: 20px;
-    min-height: 20px;
-    margin-right: 8px;
-}
-
-.network-details-box {
-    padding: 0px 20px 0px 20px;
-    border-radius: 6px;
-    background: #15171D;
-    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
-    margin-bottom: 16px;
-}
-
-.network-details-box-row {
-    border-bottom: 1px solid #202431;
-    padding: 16px 0px 16px 0px;
-}
-
-.network-details-box-row-key {
-    color: #FAFBFC;
-    font-family: Space Grotesk;
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
-}
-
-.network-details-box-row-value {
-    color: #848DA6;
-    font-family: Space Grotesk;
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 300;
-    line-height: normal;
-}
 
 .add-network-name-label {
     color: #848DA6;
@@ -415,7 +409,7 @@ background: rgba(0, 0, 0, 0.6);
     line-height: normal;
 }
 
-.connect-bluetooth-code-label {
+.text-14-label {
     color: #848DA6;
     font-size: 14px;
     font-style: normal;
@@ -455,9 +449,6 @@ background: rgba(0, 0, 0, 0.6);
     margin-bottom: 10px;
     border-radius: 6px;
     background: #15171D;
-
-
-
 }
 
 
@@ -486,50 +477,6 @@ background: rgba(0, 0, 0, 0.6);
     line-height: normal;
 }
 
-.footer-icon-button {
-    min-width: 48px;
-    min-height: 48px;
-    border-radius: 6px;
-    background: #15171D;
-}
-
-.security-label-box {
-    border-radius: 4px;
-    /* border: 1px solid #202431; */
-    background: #15171D;
-    padding: 24px 20px;
-    margin-bottom: 30px;
-}
-
-.security-label-text {
-    color: #FAFBFC;
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-}
-
-.reset-pin-btn-box {
-    border-radius: 8px;
-    background: #15171D;
-    padding: 20px 14px;
-    margin-bottom: 30px;
-}
-
-.reset-pin-btn-text {
-    color: #3283E8;
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: normal;
-}
-
-.footer-btn-box {
-    padding: 17px 14px; 
-    border-radius: 12px;
-    background: #15171D; 
-}
-
 .cancel-btn-txt {
     color: #FFF;
     font-size: 18px;
@@ -549,7 +496,8 @@ background: rgba(0, 0, 0, 0.6);
     min-width: 185px;
     min-height: 40px;
 }
-
+ 
+/* security page, date-time starts */
 .custom-switch {
     background-color: #7a7878;
 }
@@ -563,4 +511,61 @@ background: rgba(0, 0, 0, 0.6);
     font-weight: 700;
     line-height: normal; 
     font-size: 18px; 
+}
+
+.reset-pin-btn-box {
+    border-radius: 8px;
+    background: #15171D;
+    padding: 20px 14px;
+    margin: 30px 0px;
+}
+
+.reset-pin-btn-text {
+    color: #3283E8;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}
+/* security page ends */
+
+/* display page, sound page  */
+.custom-scale trough highlight {
+    background-color: #0064CF ;
+}
+
+/* battery-page */
+.custom-levelbar {
+    min-height: 20px;
+    min-width: 20px;  
+    margin: 30px 0px;
+}
+
+.custom-levelbar trough block.filled {
+    background-color:  #34C759;
+}
+
+
+/* date, time css  */
+.margin-x-10 {
+    margin: 0px 10px;
+}
+
+.set-time-box {
+    margin: 15px 15px;
+    padding: 15px;
+    font-weight: 500;
+}
+
+.time-dropdown-width {
+    min-width: 100px;
+    min-height: 50px;
+}
+
+.custom-calendar grid label.day-number.today {
+    background-color: #0064CF;
+}
+
+.custom-calendar grid label.day-number:focus {
+    background-color: #e95420;
 }

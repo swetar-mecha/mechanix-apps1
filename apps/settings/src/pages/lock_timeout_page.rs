@@ -1,8 +1,8 @@
-use gtk::prelude::BoxExt;
+use gtk::prelude::*;
 use relm4::{
-    gtk, Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent,
+    gtk::{self},
+    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller,
 };
-
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
     widgets::custom_list_radio_button::{
@@ -10,7 +10,10 @@ use crate::{
             Message as CustomListRadioButtonMessage,
         },
 };
-
+use custom_widgets::icon_button::{
+    IconButton, IconButtonCss, InitSettings as IconButtonStetings,
+    InputMessage as IconButtonInputMessage, OutputMessage as IconButtonOutputMessage,
+};
 use tracing::info;
 
 //Init Settings
@@ -26,14 +29,18 @@ pub struct LockTimeoutPage {
 }
 
 //Widgets
-pub struct LockTimeoutPageWidgets {}
+pub struct LockTimeoutPageWidgets {
+    back_button: Controller<IconButton>,
+    submit_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     MenuItemPressed(String),
-    BackSpacePressed,
+    BackPressed,
     HomeIconPressed,
+    SubmitPressed
 }
 
 pub struct SettingItem {
@@ -64,14 +71,6 @@ impl SimpleComponent for LockTimeoutPage {
         let modules = init.modules.clone();
         let layout = init.layout.clone();
         let widget_configs = init.widget_configs.clone();
-
-
-        let footer = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .css_classes(["footer"])
-            .hexpand(true)
-            .vexpand(true)
-            .build();
 
         let header_title = gtk::Label::builder()
             .label("Lock Timeout")
@@ -201,36 +200,52 @@ impl SimpleComponent for LockTimeoutPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(&scrollable_content)
             .build();
         root.append(&scrolled_window);
 
-        // footer-buttons
-        let cancel_button = gtk::Button::builder()
-            .label("Cancel")
-            .hexpand(true)
+        let footer = gtk::Box::builder()
+            .orientation(gtk::Orientation::Horizontal)
+            .css_classes(["footer"])
             .vexpand(true)
-            .halign(gtk::Align::Start)
-            .css_classes(["footer-btn-box", "cancel-btn-txt"])
+            .hexpand(true)
+            .valign(gtk::Align::End)
             .build();
 
-        footer.append(&cancel_button);
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
 
-        let submit_button = gtk::Button::builder()
-            .label("Done")
-            .hexpand(true)
-            .vexpand(true)
-            .halign(gtk::Align::End)
-            .css_classes(["footer-btn-box", "save-btn-txt"])
-            .build();
+        footer.append(back_button.widget());
 
-        footer.append(&submit_button);
+        let submit_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: modules.submit.icon.default.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::SubmitPressed,
+            });
+        let submit_button_widget = submit_button.widget();
+        submit_button_widget.set_hexpand(true);
+        submit_button_widget.set_halign(gtk::Align::End);
+
+        footer.append(submit_button_widget);
         root.append(&footer);
 
         let model = LockTimeoutPage { settings: init };
 
-        let widgets = LockTimeoutPageWidgets {};
+        let widgets = LockTimeoutPageWidgets {
+            back_button,
+            submit_button,
+        };
 
         ComponentParts { model, widgets }
     }
@@ -239,9 +254,9 @@ impl SimpleComponent for LockTimeoutPage {
         info!("Update message is {:?}", message);
         match message {
             Message::MenuItemPressed(key) => {}
-            Message::BackSpacePressed => {}
-            Message::HomeIconPressed => {
-            }
+            Message::BackPressed => {},
+            Message::HomeIconPressed => {},
+            Message::SubmitPressed => {}
         }
     }
 

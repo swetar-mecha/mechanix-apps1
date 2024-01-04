@@ -218,8 +218,11 @@ pub struct PagesSettings {
     pub network: NetworkPageSettings,
     pub bluetooth: BluetoothPageSettings,
     pub display: DisplayPageSettings,
+    pub battery: BatteryPageSettings,
     pub sound: SoundPageSettings,
     pub security: SecurityPageSettings,
+    pub dateandtime: DateTimePageSettings,
+    pub about: AboutPageSettings,
 }
 
 impl Default for PagesSettings {
@@ -228,8 +231,11 @@ impl Default for PagesSettings {
             network: NetworkPageSettings::default(),
             bluetooth: BluetoothPageSettings::default(),
             display: DisplayPageSettings::default(),
+            battery: BatteryPageSettings::default(),
             sound: SoundPageSettings::default(),
-            security: SecurityPageSettings::default()
+            security: SecurityPageSettings::default(),
+            dateandtime: DateTimePageSettings::default(),
+            about: AboutPageSettings::default()
         }
     }
 }
@@ -276,6 +282,22 @@ impl Default for DisplayPageSettings {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct BatteryPageSettings {
+    pub display_icon: Option<String>,
+    pub is_enabled: bool,
+}
+
+impl Default for BatteryPageSettings {
+    fn default() -> Self {
+        Self {
+            display_icon: None,
+            is_enabled: true,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct SoundPageSettings {
     pub display_icon: Option<String>,
@@ -298,6 +320,38 @@ pub struct SecurityPageSettings {
 }
 
 impl Default for SecurityPageSettings {
+    fn default() -> Self {
+        Self {
+            display_icon: None,
+            is_enabled: true,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct DateTimePageSettings {
+    pub display_icon: Option<String>,
+    pub is_enabled: bool,
+    pub window_size: (i32, i32),  
+}
+
+impl Default for DateTimePageSettings {
+    fn default() -> Self {
+        Self {
+            display_icon: None,
+            is_enabled: true,
+            window_size: (1024, 768),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct AboutPageSettings {
+    pub display_icon: Option<String>,
+    pub is_enabled: bool,
+}
+
+impl Default for AboutPageSettings {
     fn default() -> Self {
         Self {
             display_icon: None,

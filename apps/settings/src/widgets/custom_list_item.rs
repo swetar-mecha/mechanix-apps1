@@ -23,6 +23,7 @@ pub enum InputMessage {
 pub struct CustomListItemSettings {
     pub start_icon: Option<String>,
     pub text: String,
+    pub value: String,
     pub end_icon: Option<String>,
 }
 
@@ -72,6 +73,17 @@ impl SimpleComponent for CustomListItem {
             .css_classes(["custom-list-item-box-label"])
             .build();
 
+
+        let value = gtk::Label::builder()
+            .valign(gtk::Align::Center)
+            .halign(gtk::Align::End)
+            .vexpand(true)
+            .hexpand(true)
+            .label(&init.value)
+            .css_classes(["custom-list-item-box-label"])
+            .build();
+
+
         let action_button = gtk::Box::builder().vexpand(false).build();
 
         match init.start_icon.clone() {
@@ -84,6 +96,7 @@ impl SimpleComponent for CustomListItem {
         }
 
         action_button.append(&label);
+        action_button.append(&value);
 
         match init.end_icon.clone() {
             Some(icon) => {
@@ -117,6 +130,7 @@ impl SimpleComponent for CustomListItem {
             settings: CustomListItemSettings {
                 start_icon: init.start_icon,
                 text: init.text,
+                value: init.value,
                 end_icon: init.end_icon,
             },
             is_pressing: false,

@@ -1,7 +1,6 @@
-use custom_utils::get_image_from_path;
-use gtk::{glib::clone, prelude::*};
+use gtk::prelude::*;
 use relm4::{
-    gtk::{self, GestureClick},
+    gtk::{self},
     Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller,
 };
 
@@ -24,12 +23,12 @@ pub struct Settings {
 }
 
 //Model
-pub struct SecurityPage {
+pub struct EthernetPage {
     settings: Settings,
 }
 
 //Widgets
-pub struct SecurityPageWidgets {
+pub struct EthernetPageWidgets {
     back_button: Controller<IconButton>,
 }
 
@@ -38,8 +37,7 @@ pub struct SecurityPageWidgets {
 pub enum Message {
     MenuItemPressed(String),
     BackPressed,
-    LockTimeoutOpted,
-    ResetPinOpted,
+    IPSettingsPressed,
 }
 
 pub struct SettingItem {
@@ -48,12 +46,12 @@ pub struct SettingItem {
     end_icon: Option<String>,
 }
 
-impl SimpleComponent for SecurityPage {
+impl SimpleComponent for EthernetPage {
     type Init = Settings;
     type Input = Message;
     type Output = Message;
     type Root = gtk::Box;
-    type Widgets = SecurityPageWidgets;
+    type Widgets = EthernetPageWidgets;
 
     fn init_root() -> Self::Root {
         gtk::Box::builder()
@@ -72,28 +70,30 @@ impl SimpleComponent for SecurityPage {
         let widget_configs = init.widget_configs.clone();
 
         let header_title = gtk::Label::builder()
-            .label("Security")
+            .label("Ethernet")
             .css_classes(["header-title"])
-            .build(); 
+            .build();
+
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
-            .build(); 
+            .build();
+
         header.append(&header_title);
 
-        let lock_status_box = gtk::Box::builder()
+        let enable_status_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .css_classes(["settings-item-details-box"])
             .build();
 
-        let enable_lock_row = gtk::Box::builder()
+        let enable_row = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .hexpand(true)
             .css_classes(["settings-item-details-box-row"])
             .build();
 
-        let enable_lock_text = gtk::Label::builder()
-            .label("Enable lock")
+        let enable_text = gtk::Label::builder()
+            .label("Enable Ethernet")
             .hexpand(true)
             .halign(gtk::Align::Start)
             .css_classes(["custom-switch-text"])
@@ -104,67 +104,39 @@ impl SimpleComponent for SecurityPage {
         let style_context = switch.style_context();
         style_context.add_class("custom-switch");
 
-        enable_lock_row.append(&enable_lock_text);
-        enable_lock_row.append(&switch);
-        lock_status_box.append(&enable_lock_row);
+        enable_row.append(&enable_text);
+        enable_row.append(&switch);
+        enable_status_box.append(&enable_row);
 
-        let security_items = gtk::Box::builder()
+        let items_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .build();
 
-        let lock_timeout = CustomListItem::builder()
+        let ip_settings = CustomListItem::builder()
             .launch(CustomListItemSettings {
                 start_icon: None,
-                text: "Lock timeout".to_string(),
-                value: "10s".to_owned(),
+                text: "IP Settings".to_string(),
+                value: "".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
-                info!("msg is {:?}", msg);
-                println!("SECURITY PAGE - SCREEN clicked {:?}", msg);
+                info!("ETHERNET PAGE msg is {:?}", msg);
                 match msg { 
-                    CustomListItemMessage::WidgetClicked => Message::LockTimeoutOpted,
+                    CustomListItemMessage::WidgetClicked => Message::IPSettingsPressed,
                 }
             });
 
-        let lock_timeout_widget = lock_timeout.widget();
+        let ip_settings_widget = ip_settings.widget();
 
-        security_items.append(lock_timeout_widget);
-
-        let reset_pin_button = gtk::Box::builder()
-        .orientation(gtk::Orientation::Vertical)
-        .css_classes(["reset-pin-btn-box"])
-        .build();
-
-        let reset_pin_text = gtk::Label::builder()
-            .label("Reset Pin")
-            .css_classes(["reset-pin-btn-text"])
-            .halign(gtk::Align::Center)
-            .build();
-        reset_pin_button.append(&reset_pin_text);
-
-        let reset_pin_gesture = GestureClick::builder().button(0).build();
-        reset_pin_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackPressed);
-
-        }));
-
-        reset_pin_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output_sender().send(Message::ResetPinOpted);
-
-        }));
-        reset_pin_button.add_controller(reset_pin_gesture);
+        items_box.append(ip_settings_widget);
 
         root.append(&header);
 
         let scrollable_content = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .build();
-        scrollable_content.append(&lock_status_box);
-        scrollable_content.append(&security_items);
-        scrollable_content.append(&reset_pin_button);
+        scrollable_content.append(&enable_status_box);
+        scrollable_content.append(&items_box);
 
         let scrolled_window = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
@@ -193,12 +165,11 @@ impl SimpleComponent for SecurityPage {
             });
 
         footer.append(back_button.widget());
-
         root.append(&footer);
 
-        let model = SecurityPage { settings: init };
+        let model = EthernetPage { settings: init };
 
-        let widgets = SecurityPageWidgets {
+        let widgets = EthernetPageWidgets {
             back_button
         };
 
@@ -211,12 +182,9 @@ impl SimpleComponent for SecurityPage {
             Message::MenuItemPressed(key) => {}
             Message::BackPressed => {
                 let _ = sender.output(Message::BackPressed);
-            }
-            Message::ResetPinOpted => {
-                let _ = sender.output(Message::ResetPinOpted);
-            }
-            Message::LockTimeoutOpted => {
-                let _ = sender.output(Message::LockTimeoutOpted);
+            },
+            Message::IPSettingsPressed => {
+                let _ = sender.output(Message::IPSettingsPressed);
             }
         }
     }

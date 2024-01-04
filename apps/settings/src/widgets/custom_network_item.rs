@@ -55,7 +55,7 @@ impl SimpleComponent for CustomNetworkItem {
         let container = gtk::Box::builder()
             .vexpand(false)
             .hexpand(false)
-            .css_classes(["custom-network-item-box"])
+            .css_classes(["custom-item-box"])
             .halign(gtk::Align::Fill)
             .valign(gtk::Align::Start)
             .hexpand(true)
@@ -74,7 +74,7 @@ impl SimpleComponent for CustomNetworkItem {
             .vexpand(true)
             .hexpand(true)
             .label(&init.name)
-            .css_classes(["custom-network-item-name"])
+            .css_classes(["custom-item-name"])
             .build();
 
         let network_item_button = gtk::Box::builder().vexpand(false).build();
@@ -84,7 +84,7 @@ impl SimpleComponent for CustomNetworkItem {
             match init.connected_icon.clone() {
                 Some(icon) => {
                     let connected_icon_image =
-                        get_image_from_path(Some(icon), &["custom-network-item-connected-icon"]);
+                        get_image_from_path(Some(icon), &["custom-connected-icon"]);
                     network_item_button.append(&connected_icon_image);
                 }
                 None => (),
@@ -95,7 +95,7 @@ impl SimpleComponent for CustomNetworkItem {
             match init.private_icon.clone() {
                 Some(icon) => {
                     let private_icon_image =
-                        get_image_from_path(Some(icon), &["custom-network-item-private-icon"]);
+                        get_image_from_path(Some(icon), &["custom-private-icon"]);
                     network_item_button.append(&private_icon_image);
                 }
                 None => (),
@@ -105,7 +105,7 @@ impl SimpleComponent for CustomNetworkItem {
         match init.strength_icon.clone() {
             Some(icon) => {
                 let strength_icon_image =
-                    get_image_from_path(Some(icon), &["custom-network-item-strength-icon"]);
+                    get_image_from_path(Some(icon), &["custom-strength-icon"]);
                 network_item_button.append(&strength_icon_image);
             }
             None => (),
@@ -114,7 +114,7 @@ impl SimpleComponent for CustomNetworkItem {
         match init.info_icon.clone() {
             Some(icon) => {
                 let info_icon_image =
-                    get_image_from_path(Some(icon), &["custom-network-item-info-icon"]);
+                    get_image_from_path(Some(icon), &["custom-info-icon"]);
                 network_item_button.append(&info_icon_image);
             }
             None => (),

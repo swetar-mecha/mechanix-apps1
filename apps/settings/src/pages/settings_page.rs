@@ -1,10 +1,12 @@
-use custom_utils::get_image_from_path;
 use gtk::{glib::clone, prelude::*};
+use custom_utils::get_image_from_path;
 use relm4::{
-    factory::FactoryVecDeque,
-    gtk::{self, GestureClick},
-    ComponentParts, ComponentSender, SimpleComponent,
+    gtk::{self},
+    Component, ComponentParts, ComponentSender, SimpleComponent, ComponentController, Controller, factory::FactoryVecDeque,
 };
+use custom_widgets::icon_button::{
+        IconButton, IconButtonCss, InitSettings as IconButtonStetings, OutputMessage as IconButtonOutputMessage,
+    };
 
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
@@ -28,7 +30,9 @@ pub struct SettingsPage {
 }
 
 //Widgets
-pub struct SettingsPageWidgets {}
+pub struct SettingsPageWidgets {
+    back_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
@@ -58,7 +62,7 @@ impl SimpleComponent for SettingsPage {
     fn init_root() -> Self::Root {
         gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .css_classes(["pin-auth-container"])
+            .css_classes(["page-container"])
             .build()
     }
 
@@ -74,16 +78,11 @@ impl SimpleComponent for SettingsPage {
         let header_title = gtk::Label::builder()
             .label(modules.settings.title.clone())
             .css_classes(["header-title"])
-            .build();
-
-        let header_icon = get_image_from_path(modules.settings.icon.clone(), &["header-icon"]);
-
+            .build(); 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
-            .build();
-
-        header.append(&header_icon);
+            .build(); 
         header.append(&header_title);
 
         let mut settings_menu_items: FactoryVecDeque<MenuItem> = FactoryVecDeque::builder()
@@ -119,44 +118,30 @@ impl SimpleComponent for SettingsPage {
         root.append(&header);
 
         let footer = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .css_classes(["footer"])
-            .hexpand(true)
-            .vexpand(true)
-            .build();
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["footer"])
+        .hexpand(true)
+        .vexpand(true)
+        .valign(gtk::Align::End)
+        .build();
 
-        let back_icon_button = gtk::Box::builder()
-            .vexpand(false)
-            .hexpand(false)
-            .valign(gtk::Align::End)
-            .halign(gtk::Align::Start)
-            .css_classes(["footer-icon-button"])
-            .build();
-        let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
-        back_icon.set_vexpand(true);
-        back_icon.set_hexpand(true);
-        back_icon.set_halign(gtk::Align::Center);
-        back_icon.set_valign(gtk::Align::Center);
-        let back_click_gesture = GestureClick::builder().button(0).build();
-        back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackSpacePressed);
-        }));
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => todo!(),
+                // IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
 
-        back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output_sender().send(OutputMessage::ChangeScreen(Screens::Settings));
-
-        }));
-        back_icon_button.append(&back_icon);
-        back_icon_button.add_controller(back_click_gesture);
-        footer.append(&back_icon_button);
+        footer.append(back_button.widget());
 
         let scrolled_window = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(settings_menu_items.widget())
             .build();
         root.append(&scrolled_window);
@@ -167,7 +152,9 @@ impl SimpleComponent for SettingsPage {
             settings_menu: settings_menu_items,
         };
 
-        let widgets = SettingsPageWidgets {};
+        let widgets = SettingsPageWidgets {
+            back_button,
+        };
 
         ComponentParts { model, widgets }
     }
@@ -187,7 +174,32 @@ impl SimpleComponent for SettingsPage {
                     let _ = sender
                         .output_sender()
                         .send(OutputMessage::ChangeScreen(Screens::ManageBluetooth));
+                } else if menu_item.to_lowercase() == "display" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::Display));
+                } else if menu_item.to_lowercase() == "sound" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::Sound));
+                } else if menu_item.to_lowercase() == "battery" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::Battery));
+                } else if menu_item.to_lowercase() == "security" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::Security));
+                } else if menu_item.to_lowercase() == "date, time" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::DateTime));
+                } else if menu_item.to_lowercase() == "about" {
+                    let _ = sender
+                        .output_sender()
+                        .send(OutputMessage::ChangeScreen(Screens::About));
                 }
+
             }
             InputMessage::BackPressed => {}
         }

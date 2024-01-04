@@ -1,15 +1,21 @@
-use custom_utils::get_image_from_path;
-use gtk::{glib::clone, prelude::*};
+use gtk::prelude::*;
 use relm4::{
-    gtk::{self, GestureClick},
+    gtk::{self},
     Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller,
 };
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
 };
-use custom_widgets::icon_input::{
-    IconInput, IconInputCss, InitSettings as IconInputSettings, OutputMessage as IconInputOutputMessage,
+use custom_widgets::{
+    icon_input::{
+        IconInput, IconInputCss, InitSettings as IconInputSettings, OutputMessage as IconInputOutputMessage,
+    },
+    icon_button::{
+        IconButton, IconButtonCss, InitSettings as IconButtonStetings,
+        InputMessage as IconButtonInputMessage, OutputMessage as IconButtonOutputMessage,
+    }
 };
+
 
 use tracing::info;
 
@@ -28,6 +34,8 @@ pub struct ConnectBluetoothPage {
 //Widgets
 pub struct ConnectBluetoothPageWidgets {
     code_input: Controller<IconInput>,
+    back_button: Controller<IconButton>,
+    submit_button: Controller<IconButton>,
 }
 
 //Messages
@@ -37,6 +45,7 @@ pub enum Message {
     BackPressed,
     HomeIconPressed,
     PasswordChange(String),
+    SubmitPressed
 }
 
 pub struct SettingItem {
@@ -81,7 +90,7 @@ impl SimpleComponent for ConnectBluetoothPage {
         let code_input_label = gtk::Label::builder()
             .label("Enter code shared by the device here")
             .halign(gtk::Align::Start)
-            .css_classes(["connect-bluetooth-code-label"])
+            .css_classes(["text-14-label"])
             .build();
 
         let code_input = IconInput::builder()
@@ -100,83 +109,49 @@ impl SimpleComponent for ConnectBluetoothPage {
         root.append(code_input.widget());
 
         let footer = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .css_classes(["footer"])
-            .hexpand(true)
-            .vexpand(true)
-            .build();
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["footer"])
+        .vexpand(true)
+        .hexpand(true)
+        .valign(gtk::Align::End)
+        .build();
 
-        let footer_expand_box = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .hexpand(true)
-            .valign(gtk::Align::End)
-            .build();
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
 
-        let back_icon_button = gtk::Box::builder()
-            .vexpand(false)
-            .hexpand(false)
-            .valign(gtk::Align::Center)
-            .css_classes(["footer-icon-button"])
-            .build();
+        footer.append(back_button.widget());
 
-        let back_icon = get_image_from_path(widget_configs.footer.back_icon, &["back-icon"]);
-        back_icon.set_vexpand(true);
-        back_icon.set_hexpand(true);
-        back_icon.set_halign(gtk::Align::Center);
-        back_icon.set_valign(gtk::Align::Center);
-        let back_click_gesture = GestureClick::builder().button(0).build();
-        back_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackPressed);
+        let submit_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: modules.submit.icon.default.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::SubmitPressed,
+            });
+        let submit_button_widget = submit_button.widget();
+        submit_button_widget.set_hexpand(true);
+        submit_button_widget.set_halign(gtk::Align::End);
 
-        }));
-
-        back_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-                info!("gesture button released is {}", this.current_button());
-                let _ = sender.output_sender().send(Message::BackPressed);
-
-        }));
-        back_icon_button.add_controller(back_click_gesture);
-        back_icon_button.append(&back_icon);
-        footer_expand_box.append(&back_icon_button);
-
-        let add_icon_button = gtk::Box::builder()
-            .vexpand(false)
-            .hexpand(true)
-            .halign(gtk::Align::End)
-            .valign(gtk::Align::End)
-            .css_classes(["footer-icon-button"])
-            .build();
-
-        let add_icon = get_image_from_path(modules.submit.icon.default.clone(), &["back-icon"]);
-        add_icon.set_vexpand(true);
-        add_icon.set_hexpand(true);
-        add_icon.set_halign(gtk::Align::Center);
-        add_icon.set_valign(gtk::Align::Center);
-
-        let add_click_gesture = GestureClick::builder().button(0).build();
-        add_click_gesture.connect_pressed(clone!(@strong sender => move |this, _, _,_| {
-        info!("gesture button pressed is {}", this.current_button());
-            // sender.input_sender().send(Message::BackPressed);
-
-        }));
-
-        // add_click_gesture.connect_released(clone!(@strong sender => move |this, _, _,_| {
-        //         info!("gesture button released is {}", this.current_button());
-        //         let _ = sender.output_sender().send(Message::PairBluetoothPressed);
-
-        // }));
-
-        add_icon_button.append(&add_icon);
-        add_icon_button.add_controller(add_click_gesture);
-
-        footer_expand_box.append(&add_icon_button);
-        footer.append(&footer_expand_box);
+        footer.append(submit_button_widget);
+        
         root.append(&footer);
 
         let model = ConnectBluetoothPage { settings: init };
 
-        let widgets = ConnectBluetoothPageWidgets { code_input };
+        let widgets = ConnectBluetoothPageWidgets { 
+            code_input,
+            back_button,
+            submit_button,
+         };
 
         ComponentParts { model, widgets }
     }
@@ -192,6 +167,7 @@ impl SimpleComponent for ConnectBluetoothPage {
                 sender.output(Message::HomeIconPressed);
             },
             Message::PasswordChange(text) => {}
+            Message::SubmitPressed => {}
         }
     }
 

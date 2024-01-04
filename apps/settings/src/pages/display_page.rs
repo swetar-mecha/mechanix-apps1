@@ -1,17 +1,18 @@
+use gtk::prelude::*;
 use custom_utils::get_image_from_path;
-use gtk::{glib::clone, prelude::BoxExt};
 use relm4::{
-    gtk, Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent,
+    gtk::{self},
+    Component, ComponentController, ComponentParts, ComponentSender, SimpleComponent, Controller,
 };
-
 use crate::{
     settings::{LayoutSettings, Modules, WidgetConfigs},
-    widgets::{
-        custom_list_item::{
+    widgets::custom_list_item::{
             CustomListItem, CustomListItemSettings, Message as CustomListItemMessage,
         },
-        menu_item::{MenuItem, MenuItemSettings, Message as MenuItemMessage},
-    },
+};
+
+use custom_widgets::icon_button::{
+    IconButton, IconButtonCss, InitSettings as IconButtonStetings, OutputMessage as IconButtonOutputMessage,
 };
 
 use tracing::info;
@@ -29,14 +30,16 @@ pub struct DisplayPage {
 }
 
 //Widgets
-pub struct DisplayPageWidgets {}
+pub struct DisplayPageWidgets {
+    back_button: Controller<IconButton>,
+}
 
 //Messages
 #[derive(Debug)]
 pub enum Message {
     MenuItemPressed(String),
-    BackSpacePressed,
-    HomeIconPressed,
+    BackPressed,
+    ScreenTimeoutOpted,
 }
 
 pub struct SettingItem {
@@ -71,23 +74,15 @@ impl SimpleComponent for DisplayPage {
         let header_title = gtk::Label::builder()
             .label("Display")
             .css_classes(["header-title"])
-            .build();
-
-        let header_icon = get_image_from_path(
-            modules.pages_settings.display.display_icon.clone(),
-            &["header-icon"],
-        );
-
+            .build(); 
         let header = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .css_classes(["header"])
-            .build();
-
-        header.append(&header_icon);
+            .build(); 
         header.append(&header_title);
 
         let brigntness_label = gtk::Label::builder()
-            .label("Brigtness")
+            .label("Brigtness CHECK")
             .halign(gtk::Align::Start)
             .build();
 
@@ -104,7 +99,9 @@ impl SimpleComponent for DisplayPage {
             )
             .orientation(gtk::Orientation::Horizontal)
             .value_pos(gtk::PositionType::Right)
+            .css_classes(["custom-scale"])
             .build();
+
 
         let brigtness_items = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -114,18 +111,21 @@ impl SimpleComponent for DisplayPage {
             .launch(CustomListItemSettings {
                 start_icon: None,
                 text: "Screen off timeout".to_string(),
+                value: "30s".to_owned(),
                 end_icon: widget_configs.menu_item.end_icon.clone(),
             })
             .forward(sender.input_sender(), |msg| {
                 info!("msg is {:?}", msg);
-                match msg {
-                    CustomListItemMessage::WidgetClicked => Message::HomeIconPressed,
+                println!("DISPLAY PAGE - SCREEN clicked {:?}", msg);
+                match msg { 
+                    CustomListItemMessage::WidgetClicked => Message::ScreenTimeoutOpted,
                 }
             });
 
         let screen_off_timeout_widget = screen_off_timeout.widget();
         brigtness_items.append(&brigtness_scale);
         brigtness_items.append(screen_off_timeout_widget);
+        // brigtness_items.append(&screen_off_timeout_widget.clone());
 
         root.append(&header);
 
@@ -139,25 +139,50 @@ impl SimpleComponent for DisplayPage {
             .hscrollbar_policy(gtk::PolicyType::Never) // Disable horizontal scrolling
             .min_content_width(360)
             .min_content_height(360)
-            .css_classes(["scrollable"])
             .child(&scrollable_content)
             .build();
         root.append(&scrolled_window);
+      
+        let footer = gtk::Box::builder()
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["footer"])
+        .hexpand(true)
+        .vexpand(true)
+        .valign(gtk::Align::End)
+        .build();
+
+        let back_button = IconButton::builder()
+            .launch(IconButtonStetings {
+                icon: widget_configs.footer.back_icon.to_owned(),
+                toggle_icon: None,
+                css: IconButtonCss::default(),
+            })
+            .forward(sender.input_sender(), |msg| match msg {
+                IconButtonOutputMessage::Clicked => Message::BackPressed,
+            });
+
+        footer.append(back_button.widget());
+
+        root.append(&footer);
 
         let model = DisplayPage { settings: init };
 
-        let widgets = DisplayPageWidgets {};
+        let widgets = DisplayPageWidgets {
+            back_button
+        };
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
-        info!("Update message is {:?}", message);
+        info!("dispay msg - Update message is {:?}", message);
         match message {
             Message::MenuItemPressed(key) => {}
-            Message::BackSpacePressed => {}
-            Message::HomeIconPressed => {
-                sender.output(Message::HomeIconPressed);
+            Message::BackPressed => {
+                let _ = sender.output(Message::BackPressed);
+            }
+            Message::ScreenTimeoutOpted => {
+                let _ = sender.output(Message::ScreenTimeoutOpted);
             }
         }
     }
