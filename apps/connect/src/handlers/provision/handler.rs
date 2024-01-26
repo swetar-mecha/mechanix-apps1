@@ -99,7 +99,7 @@ impl LinkMachineHandler {
 }
   
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RunningStatus {
     INACTIVE,
     START,
@@ -160,6 +160,8 @@ impl GenerateCodeHandler {
                         match msg.unwrap() {
                             GCodeHandlerMessage::ChangeRunningStatus { status } => {
                                 self.status = status;
+                                if status.clone() != RunningStatus::STOP { println!("continue!") };
+                                break;
                             }
                         };
                     }
