@@ -13,8 +13,10 @@ pub use settings::{
 
 };
 
+#[derive(Debug, Clone)]
 pub struct SettingsClient 
-{ client: SettingsServiceClient<Channel>
+{ 
+    client: SettingsServiceClient<Channel>
 }
 impl SettingsClient { 
     

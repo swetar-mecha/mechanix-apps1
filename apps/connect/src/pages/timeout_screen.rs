@@ -1,11 +1,11 @@
 use crate::settings::{Modules, WidgetConfigs};
-use custom_utils::{get_gif_from_path, get_image_from_path};
+use custom_utils::get_image_from_path;
 use gtk::prelude::*;
 use relm4::{
     gtk::{
         self,
         glib::clone,
-        prelude::{ButtonExt, WidgetExt},
+        prelude::{ButtonExt, WidgetExt}, Button,
     },
     ComponentParts, ComponentSender, SimpleComponent,
 };
@@ -15,7 +15,7 @@ pub struct Settings {
     pub widget_configs: WidgetConfigs,
 }
 
-pub struct NoInternetPage {
+pub struct TimeoutScreen {
     settings: Settings,
 }
 
@@ -26,17 +26,17 @@ enum AppInput {
 }
 
 #[derive(Debug)]
-pub enum PageOutput {
-    BackPressed,
-    NextPressed,
+pub enum TimeoutOutput {
+    refreshPressed,
+    BackPressed // tmep
 }
 
 pub struct AppWidgets {}
 
-impl SimpleComponent for NoInternetPage {
+impl SimpleComponent for TimeoutScreen {
     type Init = Settings;
     type Input = ();
-    type Output = PageOutput;
+    type Output = TimeoutOutput;
     type Root = gtk::Box;
     type Widgets = AppWidgets;
 
@@ -51,7 +51,7 @@ impl SimpleComponent for NoInternetPage {
     ) -> relm4::ComponentParts<Self> {
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
-        let model = NoInternetPage { settings: init };
+        let model = TimeoutScreen { settings: init };
 
         let main_content_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -65,29 +65,20 @@ impl SimpleComponent for NoInternetPage {
             .css_classes(["footer-container"])
             .build();
 
-        let gif_path = modules.pages_settings.no_internet.no_internet_found.clone();
-        let paintable = get_gif_from_path(gif_path);
+        let image_path: Option<String> = modules.pages_settings.timeout_screen.timeout_image.clone();
+        let timeout_image: gtk::Image = get_image_from_path(
+            image_path,
+            &["timeout-img"],
+        );
 
-        let image_from = gtk::Image::builder()
-            .width_request(290)
-            .height_request(290)
-            .paintable(&paintable)
-            .css_classes(["gif-img"])
-            .build();
 
         let label1 = gtk::Label::builder()
-            .label("You will need internet connection to")
+            .label("Request timed out, please try again")
             .hexpand(true)
             .build();
 
-        let label2 = gtk::Label::builder()
-            .label("complete the setup")
-            .hexpand(true)
-            .build();
-
-        main_content_box.append(&image_from);
+        main_content_box.append(&timeout_image);
         main_content_box.append(&label1);
-        main_content_box.append(&label2);
 
         // footer_box
         let footer_box = gtk::Box::builder()
@@ -96,29 +87,33 @@ impl SimpleComponent for NoInternetPage {
             .valign(gtk::Align::End)
             .build();
 
+
+        let refresh_icon_img: gtk::Image =
+            get_image_from_path(widget_configs.footer.refresh_icon, &[]);
+        let refresh_button = Button::new();
+        refresh_button.set_child(Some(&refresh_icon_img));
+        refresh_button.add_css_class("footer-container-button");
+
+        refresh_button.connect_clicked(clone!(@strong sender => move |_| {
+        //   let _ =  sender.output(SetupFailOutput::NextPressed);
+          let _ =  sender.output(TimeoutOutput::refreshPressed);
+        }));
+        let button_box = gtk::Box::builder().hexpand(true).build();
+        
+
         let back_icon_img: gtk::Image = get_image_from_path(widget_configs.footer.back_icon, &[]);
-        let back_button_box = gtk::Box::builder().hexpand(true).build();
-        let back_button = gtk::Button::builder().build();
+        let back_button = Button::builder().build();
         back_button.set_child(Some(&back_icon_img));
         back_button.add_css_class("footer-container-button");
 
         back_button.connect_clicked(clone!(@strong sender => move |_| {
-          let _ =  sender.output(PageOutput::BackPressed);
+          let _ =  sender.output(TimeoutOutput::BackPressed);
         }));
+        
 
-        let settings_icon_img: gtk::Image =
-            get_image_from_path(widget_configs.footer.settings_icon, &[]);
-        let settings_button = gtk::Button::new();
-        settings_button.set_child(Some(&settings_icon_img));
-        settings_button.add_css_class("footer-container-button");
-
-        settings_button.connect_clicked(clone!(@strong sender => move |_| {
-          let _ =  sender.output(PageOutput::NextPressed);
-        }));
-
-        back_button_box.append(&back_button);
-        footer_box.append(&back_button_box);
-        footer_box.append(&settings_button);
+        // button_box.append(&back_button);  // temp - remove later
+        footer_box.append(&button_box);
+        footer_box.append(&refresh_button);
 
         footer_content_box.append(&footer_box);
         main_content_box.append(&footer_content_box);

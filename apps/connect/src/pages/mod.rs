@@ -1,8 +1,9 @@
-pub mod app_info_page;
-pub mod check_internet_page;
-pub mod no_internet_page;
-pub mod link_machine_page;
-pub mod configure_machine_page;
-pub mod setup_success_page;
-pub mod setup_failed_page;
-pub mod device_info_page;
+pub mod start_screen;
+pub mod check_internet;
+pub mod no_internet;
+pub mod link_machine;
+pub mod configure_machine;
+pub mod setup_success;
+pub mod setup_failed;
+pub mod machine_info;
+pub mod timeout_screen;

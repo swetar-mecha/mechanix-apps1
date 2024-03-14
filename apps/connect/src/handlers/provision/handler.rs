@@ -1,10 +1,11 @@
+use std::time::Instant;
 use std::{io::Error, time::Duration};
 use anyhow::{bail, Result};
 use relm4::Sender;
 use tokio::{select, sync::mpsc, time};
 use crate::server::provision_client::ProvisionManagerClient;
 
-use crate::pages::link_machine_page::InputMessage as Message;
+use crate::pages::link_machine::InputMessage as Message;
 
 #[derive(Debug)]
 enum HandleMessage {
@@ -58,6 +59,23 @@ impl LinkMachineHandler {
                                         let _ = p_code_message_tx.send(PCodeHandlerMessage::CodeChanged { code: code.clone() }).await;
                                         let _ = sender.send(Message::CodeChanged(code.clone()));
 
+                                        let mut target_value = 1.0;  
+                                        let mut interval = time::interval(time::Duration::from_secs(1));
+                                        for _i in 0..60 {
+                                            println!("fraction_value {:?} ", target_value.to_owned());
+
+                                            interval.tick().await;
+                                            println!("interval check {:?} ", interval.period());
+                                            target_value = target_value-0.0166;
+
+                                            if target_value != 0.0 {
+                                                let _ = sender.send(Message::UpdateTimer(target_value));
+                                            } 
+                                            else if target_value <= 0.001 {
+                                                target_value = 1.0
+                                            }
+
+                                        } 
                                     },
                                     Err(e) => {
                                         println!("error in gcode {}", e);
@@ -125,8 +143,9 @@ impl GenerateCodeHandler {
     }
 
     pub async fn run(&mut self, mut message_rx: mpsc::Receiver<GCodeHandlerMessage>) {
-        println!("gcode inside run");
+        println!("gcode inside run {:?} ", self.status.clone());
         let mut g_code_interval = time::interval(Duration::from_secs(60));
+
         loop {
             select! {
                     _ = g_code_interval.tick() => {
@@ -148,7 +167,6 @@ impl GenerateCodeHandler {
                     
                                 }
                             }
-
                            
                         }
                     }

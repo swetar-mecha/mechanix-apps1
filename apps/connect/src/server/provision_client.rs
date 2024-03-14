@@ -15,8 +15,7 @@ pub use provisioning::{
     PingResponse,
 };
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ProvisionManagerClient {
     client: ProvisioningServiceClient<Channel>,
 }
@@ -52,6 +51,8 @@ impl ProvisionManagerClient {
                 // bail!("Error in getting code: {:?}", e);
             },
         };
+
+        // let response: ProvisioningCodeResponse = ProvisioningCodeResponse{code: String::from("TEST123")};
         Ok(response)
     }
 
@@ -82,17 +83,24 @@ impl ProvisionManagerClient {
     pub async fn ping(&mut self) ->  Result<PingResponse, Box<dyn std::error::Error>> {
         let request = tonic::Request::new(Empty {});
 
-      
-        let response = match self.client.ping(request).await {
-            Ok(response) => {
-                println!("grpc function: ping response: {:?} ", response);
-                response.into_inner()
-            },
-            Err(e) => {
-                // eprintln!("error in provision by code: {:?} ", e);
-                // bail!("Error in provision by code: {:?}", e);
-                return Err(Box::new(e));
-            },
+        // let response = match self.client.ping(request).await {
+        //     Ok(response) => {
+        //         println!("grpc function: ping response: {:?} ", response);   
+        //         //  true - connectivity yes
+        //         //  false - connectivity no
+        //         response.into_inner()
+        //     },
+        //     Err(e) => {
+        //         // // eprintln!("error in provision by code: {:?} ", e);
+        //         // // bail!("Error in provision by code: {:?}", e);
+        //         // return Err(Box::new(e));
+        //         return Err(Box::new(e));
+        //     },
+        // };
+
+        let response = PingResponse{
+            code : String::from("false"),   // success
+            message: String::from(""),
         };
 
         Ok(response)

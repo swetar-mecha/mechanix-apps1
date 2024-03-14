@@ -17,7 +17,7 @@ pub struct Settings {
     pub modules: Modules,
     pub widget_configs: WidgetConfigs,
 }
-pub struct CheckInternetPage {
+pub struct CheckInternet {
     settings: Settings,
 }
 
@@ -30,7 +30,7 @@ pub enum InputMessage {
     ActiveScreen(String),
     NextScreen,
     ConnectionNotFound,
-    ShowError
+    ShowError(String)
 }
 
 #[derive(Debug)]
@@ -38,13 +38,13 @@ pub enum CheckInternetOutput {
     BackPressed,
     LinkMachine,
     ConnectionNotFound,
-    ShowError
+    ShowError(String)
 }
 
 pub struct AppWidgets {}
 
 #[async_trait(?Send)]
-impl AsyncComponent for CheckInternetPage {
+impl AsyncComponent for CheckInternet {
     type Init = Settings;
     type Input = InputMessage;
     type Output = CheckInternetOutput;
@@ -65,7 +65,7 @@ impl AsyncComponent for CheckInternetPage {
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
-        let model = CheckInternetPage { settings: init };
+        let model = CheckInternet { settings: init };
 
         let main_content_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -84,8 +84,8 @@ impl AsyncComponent for CheckInternetPage {
         let paintable = get_gif_from_path(gif_path);
 
         let image_from = gtk::Image::builder()
-            .width_request(290)
-            .height_request(290)
+            .width_request(370)
+            .height_request(370)
             .paintable(&paintable)
             .css_classes(["gif-img"])
             .build();
@@ -94,11 +94,11 @@ impl AsyncComponent for CheckInternetPage {
             .label("Checking for internet connectivity...")
             .build();
 
-        let label2: gtk::Label = gtk::Label::builder().label("Please wait").build();
+        // let label2: gtk::Label = gtk::Label::builder().label("Please wait").build();
 
         main_content_box.append(&image_from);
         main_content_box.append(&label1);
-        main_content_box.append(&label2);
+        // main_content_box.append(&label2);
 
         let footer_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
@@ -156,8 +156,8 @@ impl AsyncComponent for CheckInternetPage {
             InputMessage::ConnectionNotFound => {
                 let _ =  sender.output(CheckInternetOutput::ConnectionNotFound);
             }
-            InputMessage::ShowError => {
-                let _ =  sender.output(CheckInternetOutput::ShowError);
+            InputMessage::ShowError(text) => {
+                let _ =  sender.output(CheckInternetOutput::ShowError(text));
             }
         }
         
@@ -168,7 +168,8 @@ async fn init_services(sender: relm4::Sender<InputMessage>) {
     println!("init services called...");
 
     let time_duration=Duration::from_millis(7000);
-    let _ = tokio::time::sleep(time_duration);
+    // let time_duration=Duration::from_millis(400000);
+    let _ = tokio::time::sleep(time_duration).await;
 
     match ProvisionManagerClient::new().await {
         Ok(mut client) => {
@@ -182,12 +183,30 @@ async fn init_services(sender: relm4::Sender<InputMessage>) {
                     let _ = sender.send(InputMessage::ConnectionNotFound);
                    }
                 },
-                Err(error) => eprintln!("ping error: {}", error)
+                Err(error) => {
+                    // ping error: status: Internal, message: "deadline has elapsed", details: [], metadata: MetadataMap { headers: {"content-type": "application/grpc", "date": "Mon, 11 Mar 2024 07:31:12 GMT", "content-length": "0"} }
+
+                    // ping error: status: Internal, message: "timeout while receiving message from channel", details: [], metadata: MetadataMap { headers: {"content-type": "application/grpc", "date": "Mon, 11 Mar 2024 07:48:28 GMT", "content-length": "0"} }
+
+                    
+
+                    eprintln!("ping error: {}", error);
+                    let _ = sender.send(InputMessage::ShowError("Try after some time!".to_owned()));
+                }
             }
         },
         Err(error) => {
+
+            // agent connection refused! - Handler error screen
+            // Client error :: Error in ProvisioningServiceClient: tonic::transport::Error(Transport, hyper::Error(Connect, ConnectError("tcp connect error", Os { code: 111, kind: ConnectionRefused, message: "Connection refused" }))) 
+            // let _ = sender.send(InputMessage::ConnectionNotFound);
+            
+            // Error connecting to service
+
             println!("Client error :: {} ", error);
-            // server connection refused! - Handler error screen
+            let _ = sender.send(InputMessage::ShowError("Machine Agent is not running".to_owned()));
+
+
         }
     };
 }

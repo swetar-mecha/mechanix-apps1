@@ -16,7 +16,7 @@ pub struct Settings {
     pub widget_configs: WidgetConfigs,
 }
 
-pub struct SetupSuccessPage {
+pub struct SetupSuccess {
     settings: Settings,
 }
 
@@ -34,7 +34,7 @@ pub enum SetupSuccessOutput {
 
 pub struct AppWidgets {}
 
-impl SimpleComponent for SetupSuccessPage {
+impl SimpleComponent for SetupSuccess {
     type Init = Settings;
     type Input = ();
     type Output = SetupSuccessOutput;
@@ -53,11 +53,11 @@ impl SimpleComponent for SetupSuccessPage {
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
-        let model = SetupSuccessPage { settings: init };
+        let model = SetupSuccess { settings: init };
 
         let main_content_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
-            .css_classes(["app-container"])
+            .css_classes(["app-container", "setup-status-label"])
             .build();
 
         let footer_content_box = gtk::Box::builder()
@@ -72,42 +72,41 @@ impl SimpleComponent for SetupSuccessPage {
         let paintable = get_gif_from_path(gif_path);
 
         let image_from = gtk::Image::builder()
-            .width_request(262)
-            .height_request(262)
+            .width_request(370)
+            .height_request(370)
             .css_classes(["gif-img"])
             .paintable(&paintable)
             .build();
 
         // bold
         let label1: gtk::Label = gtk::Label::builder()
-            .label("Your setup is complete")
-            .css_classes(["setup-status-label"])
+            .label("Machine is now connected to your Mecha account")
             .build();
 
-        let label2: gtk::Label = gtk::Label::builder()
-            .label("Your machine is connected to Mecha cloud")
-            .css_classes(["setup-success-info"])
-            .build();
+        // let label2: gtk::Label = gtk::Label::builder()
+        //     .label("Your machine is connected to Mecha cloud")
+        //     .css_classes(["setup-success-info"])
+        //     .build();
 
         main_content_box.append(&image_from);
         main_content_box.append(&label1);
-        main_content_box.append(&label2);
+        // main_content_box.append(&label2);
 
         // footer_box
         let footer_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .hexpand(true)
             .build();
+        let button_box = gtk::Box::builder().hexpand(true).build();
 
-        let back_icon_img: gtk::Image = get_image_from_path(widget_configs.footer.back_icon, &[]);
-        let back_button_box = gtk::Box::builder().hexpand(true).build();
-        let back_button = Button::builder().build();
-        back_button.set_child(Some(&back_icon_img));
-        back_button.add_css_class("footer-container-button");
+        // let back_icon_img: gtk::Image = get_image_from_path(widget_configs.footer.back_icon, &[]);
+        // let back_button = Button::builder().build();
+        // back_button.set_child(Some(&back_icon_img));
+        // back_button.add_css_class("footer-container-button");
 
-        back_button.connect_clicked(clone!(@strong sender => move |_| {
-          let _ =  sender.output(SetupSuccessOutput::BackPressed);
-        }));
+        // back_button.connect_clicked(clone!(@strong sender => move |_| {
+        //   let _ =  sender.output(SetupSuccessOutput::BackPressed);
+        // }));
 
         let next_icon_img: gtk::Image = get_image_from_path(widget_configs.footer.next_icon, &[]);
         let next_button = Button::new();
@@ -118,8 +117,8 @@ impl SimpleComponent for SetupSuccessPage {
           let _ =  sender.output(SetupSuccessOutput::NextPressed);
         }));
 
-        back_button_box.append(&back_button);
-        footer_box.append(&back_button_box);
+        // button_box.append(&back_button);
+        footer_box.append(&button_box);
         footer_box.append(&next_button);
 
         footer_content_box.append(&footer_box);

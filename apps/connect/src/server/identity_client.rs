@@ -11,6 +11,7 @@ pub use identity::{
     GetMachineIdRequest, GetMachineIdResponse
 };
 
+#[derive(Debug, Clone)]
 pub struct IdentityClient 
 { client: IdentityServiceClient<Channel>
 }

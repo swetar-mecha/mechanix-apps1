@@ -15,22 +15,22 @@
 }
 
 .app-container {
-    padding: 20px 20px;
+    padding: 5px 20px 20px 20px;
     color: #FAFBFC;
 }
 
-.app-info-header {
-    font-weight: 400;
+.start-screen-header {
+    font-weight: 700;
     font-size: 26px;
     line-height: 34px;
     color: #FAFBFC;
     margin: 10px 10px;
 }
 
-.app-info-header-label {
-    font-weight: 300;
-    font-size: 14px;
-    line-height: 17px;
+.start-screen-header-label {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 22px;
     color: #B7BBC8;
     margin: 10px 10px;
 }
@@ -40,57 +40,63 @@
     min-height: 48px;
 }
 
-.app-info-header-box {
+/* .link-machine-header-box */
+.start-screen-header-box {
     min-width: 167px;
     min-height: 28px;
+    padding: 18px 20px;
+    box-shadow: 0px 12px 15px rgb(21, 23, 29);
+    background-color: rgba(43, 44, 48, 0.8);
+    /* box-shadow: 0px 8px 5px rgb(35, 39, 49); */
 }
 
-.app-info-steps-container {
-    margin: 10px 10px;
+.start-screen-steps-container {
+    margin: 5px 5px;
     color: #FAFBFC;
 }
 
-.app-info-steps-label {
-    margin-left: 10px;
+.start-screen-steps-label {
+    margin: 0px 20px 0px 30px;
+    text-align: left;
 }
 
-.app-info-steps-box {
+.start-screen-steps-box {
     min-width: 440px;
     min-height: 76px;
 
     font-weight: 500;
-    font-size: 16px;
-    line-height: 24px;
+    font-size: 18px;
+    line-height: 26px;
     padding: 10px 0px 10px 0px;
 }
 
-.app-info-steps-icon {
+.start-screen-steps-icon {
     min-width: 76px;
     min-height: 76px;
 }
 
 .check-internet-text {
     font-weight: 500;
-    font-size: 16px;
+    font-size: 20px;
     line-height: 30px;
     color: #FAFBFC;
 }
 
 .link-machine-steps-container {
-    margin: 20px 10px;
+    margin: 20px 0px;
     color:#FAFBFC;
 }
 
 .link-machine-header {
-    font-weight: 400;
+    font-weight: 700;
     font-size: 26px;
-    line-height: 33px;
-    margin:5px 5px;
+    line-height: 34px;
+    margin: 10px 10px;
 }
 
 .link-machine-header-label {
     font-weight: 500;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 22px;
     margin: 15px 5px;
     color: #B7BBC8;
@@ -114,19 +120,25 @@
     font-weight: 500;
     font-size: 28px;
     line-height: 35.73px;
+    letter-spacing: 5px;
 }
 
 .link-machine-steps-box {
-    padding:15px 10px 15px 10px;
+    /* padding:15px 0px 15px 0px; */
+    margin: 15px 2px;
+    color: #FAFBFC;
 }
 
 .link-machine-steps-text {
     font-weight: 500;
-    font-size: 14px;
-    line-height: 22px;
+    font-size: 18px;
+    line-height: 24px;
     color: #E4E7EE;
-    margin: 0px 5px;
+    margin: 0px 3px;
 }
+
+/* .link-machine-progress-box {
+} */
 
 .square-border-box {
     border: 1px solid #E4E7EE;
@@ -137,33 +149,41 @@
     margin-right: 4px;
 }
 
-.configure-container {
-    color:#FAFBFC;
-    font-weight: 500;
-    font-size: 17px;
-    line-height: 21.69px;
+.circle-border-box {
+    border-radius: 55px;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 16px;
+    margin-right: 4px;
+    background-color: #3283E8;
 }
 
 .gif-img {
-    margin: 40px 40px 20px 40px;
+    margin: 12px 40px 12px 40px;
 }
 
 .configure-text {
     margin: 20px 0px;
 }
 
-.configure-text-label {
-    color:#B7BBC8;
+.configure-machine-text {
     font-weight: 500;
-    font-size: 16px;
-    line-height: 20.42px
+    font-size: 20px;
+    line-height: 30px;
+    color: #FAFBFC;
+}
+
+.timeout-img {
+    min-width: 348px;
+    min-height: 348px;
+    margin: 12px 40px 12px 40px;
 }
 
 .setup-status-label {
     font-weight: 500;
-    font-size: 22px;
-    line-height: 22.97px;
-    margin: 20px 0px;
+    font-size: 20px;
+    line-height: 30px;
+    /* margin: 20px 0px; */
 }
 
 .setup-success-info {
@@ -186,6 +206,14 @@
     font-size: 16px;
     line-height: 22px;
     color: red;
+    margin:6px 0px;
+    padding: 4px 10px;
+    background-color: #202124;
+    border-radius: 10px;
+}
+
+.fail-text-bubble {
+    
 }
 
 .device-info-border-box {
@@ -200,7 +228,7 @@
 
 .about-device-name {
     font-size: 20px;
-    margin: 20px 0px 20px 5px;
+    margin: 10px 0px 10px 5px;
 }
 
 .device-id-text{
@@ -209,7 +237,7 @@
 
 .about-device-id {
     font-size: 18px;
-    font-weight: 400;
+    font-weight: 700;
     line-height: 22px;
 }
 
@@ -263,6 +291,16 @@
     min-height: 40px; 
 }
 
-.custom-progress-bar trough progress{
-    background-color: blue; 
+/* .window stack box progressbar trough progress{  
+    background-image: conic-gradient(#2c2fec 100%, #eee 0);
+} */
+
+
+.custom-progress-bar trough {
+    min-height: 2px;
+}
+
+.custom-progress-bar trough progress {
+    background-image: conic-gradient(#3283E8 100%, #eee 0);
+    min-height: 2px;
 }

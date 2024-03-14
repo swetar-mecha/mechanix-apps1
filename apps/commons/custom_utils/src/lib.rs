@@ -1,4 +1,4 @@
-use gtk::{gdk, gio};
+use gtk::{gdk, gio, glib};
 use relm4::gtk::{self, prelude::FileExt}; 
 use custom_widgets::gif_paintable::GifPaintable;
 
@@ -13,7 +13,7 @@ pub fn get_image_from_path(path: Option<String>, css_classes: &[&str]) -> gtk::I
                     image.set_paintable(Option::from(&image_asset_paintable));
                 },
                 Err(_) => (),
-            }
+            } 
         }
         None => (),
     }

@@ -96,6 +96,7 @@ pub struct FooterWidgetConfigs {
     pub next_icon: Option<String>,
     pub settings_icon: Option<String>,
     pub refresh_icon: Option<String>,
+    pub exit_icon: Option<String>,
     pub trash_icon: Option<String>
 }
 
@@ -106,6 +107,7 @@ impl Default for FooterWidgetConfigs {
             next_icon: None,
             settings_icon: None,
             refresh_icon: None,
+            exit_icon: None,
             trash_icon: None
         }
     }
@@ -113,38 +115,40 @@ impl Default for FooterWidgetConfigs {
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct PagesSettings {
-    pub app_info: AppInfoSettings,
+    pub start_screen: StartScreenSettings,
     pub check_internet: CheckInternetSettings,
     pub no_internet: NoInternetSettings,
     pub configure_machine: ConfigureMachineSettings,
     pub setup_success: SetupSuccessSettings,
     pub setup_failure: SetupFailedSettings,
-    pub device_info: DeviceInfoSettings
+    pub device_info: DeviceInfoSettings,
+    pub timeout_screen : TimeoutScreenSettings
 }
 
 impl Default for PagesSettings {
     fn default() -> Self {
         Self {
-            app_info: AppInfoSettings::default(),
+            start_screen: StartScreenSettings::default(),
             check_internet: CheckInternetSettings::default(),
             no_internet: NoInternetSettings::default(),
             configure_machine: ConfigureMachineSettings::default(),
             setup_success: SetupSuccessSettings::default(),
             setup_failure: SetupFailedSettings::default(),
-            device_info: DeviceInfoSettings::default()
+            device_info: DeviceInfoSettings::default(),
+            timeout_screen: TimeoutScreenSettings::default(),
         }
     }
 }
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
-pub struct AppInfoSettings {
+pub struct StartScreenSettings {
     pub app_icon: Option<String>,
     pub virtual_network_icon:  Option<String>,
     pub real_time_icon:  Option<String>,
     pub encypt_icon:  Option<String>,
 }
 
-impl Default for AppInfoSettings {
+impl Default for StartScreenSettings {
     fn default() -> Self {
         Self {
             app_icon: None,
@@ -154,6 +158,20 @@ impl Default for AppInfoSettings {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct TimeoutScreenSettings {
+    pub timeout_image:  Option<String>,
+}
+
+impl Default for TimeoutScreenSettings {
+    fn default() -> Self {
+        Self {
+            timeout_image: None,
+        }
+    }
+}
+
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct CheckInternetSettings {

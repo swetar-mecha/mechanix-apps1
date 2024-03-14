@@ -1,6 +1,24 @@
 {
     "rust-analyzer.linkedProjects": [
         "./apps/commons/custom_widgets/Cargo.toml",
-        "./apps/commons/custom_widgets/Cargo.toml"
+        "./apps/commons/custom_widgets/Cargo.toml",
+        "./apps/settings/Cargo.toml",
+        "./apps/settings/Cargo.toml",
+        "./apps/settings/Cargo.toml",
+        "./apps/settings/Cargo.toml",
+        "./apps/settings/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml",
+        "./apps/connect/Cargo.toml"
     ]
 }

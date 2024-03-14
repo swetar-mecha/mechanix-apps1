@@ -4,32 +4,28 @@ use gtk::prelude::*;
 use relm4::{
     component::{AsyncComponent, AsyncComponentParts},
     gtk::{
-        self,
-        gdk::Display,
-        glib::clone,
-        prelude::{ButtonExt, WidgetExt},
-        Button, CssProvider, STYLE_PROVIDER_PRIORITY_APPLICATION,
+        self, gdk::Display, glib::clone, pango, prelude::{ButtonExt, WidgetExt}, Button, CssProvider, STYLE_PROVIDER_PRIORITY_APPLICATION
     },
     AsyncComponentSender,
 };
-use tokio::sync::oneshot;
-use std::time::{Duration, Instant};
+use tokio::{sync::oneshot, time::interval};
+use std::{thread::Builder, time::{Duration, Instant}};
 
-use crate::{handlers::provision::handler::LinkMachineHandler,settings::WidgetConfigs};
+use crate::{handlers::provision::handler::LinkMachineHandler,settings::{Modules, WidgetConfigs}};
 
 // use crate::{services::provisionHandler::ProvisionHandler, settings::WidgetConfigs};
 
 pub struct Settings {
+    pub modules: Modules,
     pub widget_configs: WidgetConfigs,
 }
 
-pub struct LinkMachinePage {
+pub struct LinkMachine {
     settings: Settings,
     connect_code: String,
+    progress: f64,
     timer: i32,
     provision_status: bool,
-    progress: f64,
-    progress_angle: i32,
     current_time: i32,
 }
 
@@ -50,28 +46,23 @@ pub enum LinkMachineOutput {
 pub enum InputMessage {
     ActiveScreen(String),
     CodeChanged(String),
+    UpdateTimer(f64),
     GenerateCodeError(String),
     ProvisionSuccess,
     ShowError(String),
-    TimeTick,
 }
 
 pub struct AppWidgets {
     connect_code_label: gtk::Label,
-    spinner: gtk::Spinner,
+    progress_bar: gtk::ProgressBar,
+    // spinner: gtk::Spinner,
     // timer_label: gtk::Label,
-    // time_bar: gtk::ProgressBar,
-}
-
-// //
-pub struct LinkMachineData {
-    pub generated_code: String,
 }
 
 const TIMER: i32 = 10;
 
 #[async_trait(?Send)]
-impl AsyncComponent for LinkMachinePage {
+impl AsyncComponent for LinkMachine {
     type Init = Settings;
     type Input = InputMessage;
     type Output = LinkMachineOutput;
@@ -96,6 +87,9 @@ impl AsyncComponent for LinkMachinePage {
         root: Self::Root,
         sender: AsyncComponentSender<Self>,
     ) -> AsyncComponentParts<Self> {
+        println!("link machine page init...");
+
+        let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
         let main_content_box = gtk::Box::builder()
@@ -112,28 +106,43 @@ impl AsyncComponent for LinkMachinePage {
 
         let header_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
-            .css_classes(["link-machine-header"])
+            // .css_classes(["link-machine-header"])
+            .css_classes(["start-screen-header-box"])
             .build();
+
+        let app_icon_path: Option<String> = modules.pages_settings.start_screen.app_icon.clone();
+
+        let app_icon: gtk::Image = get_image_from_path(
+            app_icon_path,
+            &["app-icon"],
+        );
 
         let header_label = gtk::Label::builder()
-            .label("Linking your machine")
+            .label("Link your Machine")
             .halign(gtk::Align::Start)
             .build();
+
+        header_label.style_context().add_class("start-screen-header");
+
+        header_box.append(&app_icon);
         header_box.append(&header_label);
+
         main_content_box.append(&header_box);
 
-        let header_label_box = gtk::Box::builder()
-            .orientation(gtk::Orientation::Horizontal)
-            .hexpand(true)
-            .build();
-
         let header_p = gtk::Label::builder()
-            .label("Use the below code to onnect this machine to your mech.so \naccount")
-            .css_classes(["link-machine-header-label"])
+            .label("Use this below code to connect this machine to your Mecha account")
+            // .css_classes(["link-machine-header-label"])
+            .css_classes(["start-screen-header-label"])
+            .halign(gtk::Align::Start)
             .build();
 
-        header_label_box.append(&header_p);
-        main_content_box.append(&header_label_box);
+        main_content_box.append(&header_p);
+
+
+        let info_box = gtk::Box::builder()
+        .orientation(gtk::Orientation::Vertical)
+        .css_classes(["start-screen-steps-container"])
+        .build();
 
         // check-code
         let main_code_box = gtk::Box::builder()
@@ -155,31 +164,38 @@ impl AsyncComponent for LinkMachinePage {
             .width_request(30)
             .build();
         spinner.set_spinning(false);
-
-        // progressbar
-        let time_bar = gtk::ProgressBar::builder().build();
-        time_bar.style_context().add_class("time-progressbar");
-        time_bar.set_visible(false);
-
+      
         let connect_code_label = gtk::Label::builder()
             .label("") // ABCD 1234
             .css_classes(["link-machine-code"])
             .build();
 
-        // let timer_label = gtk::Label::builder()
-        //     .label("")
-        //     .css_classes(["link-machine-code"])
-        //     .build();
 
-        // .css_classes(["link-machine-code", "custom-circle"])
+        // progress bar
+        let progress_box = gtk::Box::builder()
+        .orientation(gtk::Orientation::Horizontal)
+        .hexpand(true)
+        // .css_classes(["link-machine-progress-box"])
+        .build();
+
+        // progressbar
+        let progress_bar = gtk::ProgressBar::builder()
+        .fraction(1.0)
+        .hexpand_set(true)
+        .hexpand(true)
+        .build();
+        progress_bar.style_context().add_class("custom-progress-bar");
+        // progress_bar.set_visible(true);
+
+        progress_box.append(&progress_bar);
 
         code_label_box.append(&connect_code_label);
         main_code_box.append(&code_label_box);
-        main_code_box.append(&time_bar);
-        main_code_box.append(&spinner);
-        // main_code_box.append(&timer_label);
+        // main_code_box.append(&spinner);
 
-        main_content_box.append(&main_code_box);
+        info_box.append(&main_code_box);
+        info_box.append(&progress_box);
+        // main_content_box.append(&main_code_box);
 
         let main_steps_box: gtk::Box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -193,20 +209,25 @@ impl AsyncComponent for LinkMachinePage {
             .build();
 
         let step1_label_box = gtk::Box::builder()
-            .css_classes(["square-border-box"])
+            .css_classes(["circle-border-box"])
             .valign(gtk::Align::Start)
             .build();
 
         let step1_label = gtk::Label::builder()
             .label("1")
-            .width_request(10)
-            .height_request(10)
+            .width_request(25)
+            .height_request(25)
             .build();
         step1_label_box.append(&step1_label);
 
         let step1_text = gtk::Label::builder()
-            .label("Sign up on mecha.so")
+            // .label("Sign up on mecha.so")
+            .label("Create a new account on Mecha, if not signed up earlier.")
             .css_classes(["link-machine-steps-text"])
+            .wrap(true)
+            .wrap_mode(pango::WrapMode::Word) 
+            .hexpand(true)
+            .halign(gtk::Align::Start)
             .build();
 
         linking_step1_box.append(&step1_label_box);
@@ -222,19 +243,20 @@ impl AsyncComponent for LinkMachinePage {
             .build();
 
         let step2_label_box = gtk::Box::builder()
-            .css_classes(["square-border-box"])
+            .css_classes(["circle-border-box"])
             .valign(gtk::Align::Start)
             .build();
 
         let step2_label = gtk::Label::builder()
             .label("2")
-            .width_request(10)
-            .height_request(10)
+            .width_request(25)
+            .height_request(25)
             .build();
         step2_label_box.append(&step2_label);
 
         let step2_text = gtk::Label::builder()
-            .label("Use the Console app or developer CLI to add a new \nmachine")
+            // .label("Use the Console app or developer CLI to add a new \nmachine")
+            .label("Navigate to Machines > Add Machine")
             .css_classes(["link-machine-steps-text"])
             .build();
 
@@ -251,19 +273,20 @@ impl AsyncComponent for LinkMachinePage {
             .build();
 
         let step3_label_box = gtk::Box::builder()
-            .css_classes(["square-border-box"])
+            .css_classes(["circle-border-box"])
             .valign(gtk::Align::Start)
             .build();
 
         let step3_label = gtk::Label::builder()
             .label("3")
-            .width_request(10)
-            .height_request(10)
+            .width_request(25)
+            .height_request(25)
             .build();
         step3_label_box.append(&step3_label);
 
         let step3_text = gtk::Label::builder()
-            .label("Use this code when asked to enter the provisioning code")
+            // .label("Use this code when asked to enter the provisioning code")
+            .label("Enter the code shown above when asked")
             .css_classes(["link-machine-steps-text"])
             .build();
 
@@ -272,7 +295,14 @@ impl AsyncComponent for LinkMachinePage {
 
         main_steps_box.append(&linking_step3_box);
 
-        main_content_box.append(&main_steps_box);
+        // let toast = gtk::InfoBar::new();
+        // toast.set_message_type(gtk::MessageType::Error);
+        // toast.add_button("HELLO", gtk::ResponseType::None);
+        // // info_box.append(toast);
+
+        // main_content_box.append(&main_steps_box);
+        info_box.append(&main_steps_box);
+        main_content_box.append(&info_box);
 
         // footer_box
         let footer_box = gtk::Box::builder()
@@ -312,21 +342,18 @@ impl AsyncComponent for LinkMachinePage {
 
         root.append(&main_content_box);
 
-        let model = LinkMachinePage {
+        let model = LinkMachine {
             settings: init,
             connect_code: "".to_string(),
             timer: TIMER,
             provision_status: false,
             progress: 0.0,
-            progress_angle: 0,
             current_time: 0,
         };
 
         let widgets = AppWidgets {
-            connect_code_label,
-            spinner,
-            // time_bar,
-            // timer_label,
+            connect_code_label, 
+            progress_bar, 
         };
 
         AsyncComponentParts { model, widgets }
@@ -348,36 +375,49 @@ impl AsyncComponent for LinkMachinePage {
                 let result = init_services(sender).await;
             },
             InputMessage::ProvisionSuccess => {
+                println!("ProvisionSuccess -> move to NEXT..");
              let _ =  sender.output(LinkMachineOutput::NextPressed);
             },
             InputMessage::CodeChanged(code) => {
                 println!("inside InputMessage code change");
                 self.connect_code = code.clone();
-            },
-            InputMessage::TimeTick => {
-                // let mut current_time = self.timer.clone();
-                // if current_time >= 0 {
-                //     if current_time == 0 {
-                //         current_time = TIMER.clone();
-                //         // // Generate code
-                //         let _ = sender.input_sender().send(InputMessage::GenerateCode);
+
+
+                let mut total_time = 1.0;
+                let mut fraction_value = 0.01;
+                let mut g_code_interval = interval(Duration::from_secs(1)); 
+
+
+                // loop {
+
+                //     g_code_interval.tick().await;
+
+                //     total_time =  total_time.to_owned() - fraction_value.to_owned();
+                //     // self.progress = total_time.clone();
+                //     // println!("total_time {:?} ", total_time.to_owned());
+
+                //     if total_time == 0.0 {
+                //         total_time = 1.0;
                 //     }
-                //     current_time -= 1;
                 // }
-                // self.timer = current_time;
-                // // println!("NEW TIME {:?} & OG TIMER {:?}", self.timer, TIMER);
+                
+                // // for _ in 0..60 {
+                // //     // tokio::spawn(future)
+                // //     fraction_value = total_time-0.01;
+                // //     println!("fraction_value {:?} ", fraction_value.to_owned());
+                // //     self.progress = fraction_value.clone();
 
-                // println!("After TIme's up!! {:?} & {:?}", self.connect_code, self.timer);
-                // let _ = sender.input_sender().send(InputMessage::GenerateCode);
+                // //     if fraction_value == 0.0 {
+                // //         fraction_value = total_time.clone();
+                // //     }
+        
+                // // }
 
-                // if self.timer > 0 {
-                //     self.timer -= 1;
-                //     println!("Remaining Time: {:?}", self.timer);
-                // } else {
-                //     self.timer = TIMER.clone();
-                //     let _ = sender.input_sender().send(InputMessage::GenerateCode);
-                // }
+
             },
+            InputMessage::UpdateTimer(value) => {
+                self.progress = value.clone();
+            }
             InputMessage::GenerateCodeError(error) => {
                 println!("Generate code error: {:?} ", error);
                 println!("SHOW TOAST!");
@@ -392,8 +432,18 @@ impl AsyncComponent for LinkMachinePage {
 
     fn update_view(&self, widgets: &mut Self::Widgets, sender: AsyncComponentSender<Self>) {
         println!("update_view {:?} ", self.connect_code);
+        println!("progress {:?} ", self.progress.to_owned());
         widgets.connect_code_label.set_label(&self.connect_code);
-        widgets.spinner.set_spinning(true);
+
+        widgets.progress_bar.set_fraction(self.progress);
+
+        // widgets.spinner.set_spinning(true);
+
+        // let result = update_progress(sender);
+        // let mut remaining_time = 1.0;
+  
+        // let mut g_code_interval = interval(Duration::from_secs(1)); 
+
 
     }
   
@@ -404,7 +454,24 @@ async fn init_services(sender: relm4::Sender<InputMessage>) {
 
     let sender_clone_1 = sender.clone();
     let mut link_machine_handler = LinkMachineHandler::new();
-    let _ = relm4::spawn_local(async move {
+   
+    let _ = relm4::spawn(async move {
         let _ = link_machine_handler.run(sender_clone_1).await;
     });
+}
+
+async fn update_progress(sender: relm4::Sender<InputMessage>) {
+    // let mut time_interval = time::interval(Duration::from_secs(1)); // Tick every second within the 60 seconds
+
+    // let total_time = Duration::from_secs_f64(1.0); // Total time is 1.0 seconds
+    // let mut remaining_time = 1.0;
+
+    // _= time_interval.tick() => {
+    //     remaining_time -= 0.01;
+    //     println!("Time fraction remaining: {:.2}", remaining_time);
+    //     // sender
+    //     if remaining_time <= 0.0 {
+    //         remaining_time = 1.0; // Reset remaining time to 1.0
+    //     }
+    // }
 }

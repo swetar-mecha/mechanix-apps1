@@ -1,4 +1,4 @@
-use custom_utils::get_image_from_path;
+use custom_utils::{get_gif_from_path, get_image_from_path};
 use gtk::prelude::*;
 use relm4::{gtk::{self, prelude::{WidgetExt, ButtonExt, StyleContextExt}, Button,  glib::clone, pango}, ComponentParts, ComponentSender, SimpleComponent};
 use crate::settings::{Modules, WidgetConfigs};
@@ -7,12 +7,12 @@ pub struct Settings {
     pub modules: Modules,
     pub widget_configs: WidgetConfigs,
 }
-pub struct AppInfoPage {
+pub struct StartScreen {
     settings: Settings,
 }
 
 #[derive(Debug)]
-pub enum AppInfoOutput {
+pub enum StartScreenOutput {
     BackPressed,
     NextPressed
 }
@@ -20,11 +20,11 @@ pub enum AppInfoOutput {
 pub struct AppWidgets {
 }
 
-impl SimpleComponent for AppInfoPage {
+impl SimpleComponent for StartScreen {
 
     type Init = Settings;
     type Input = ();
-    type Output = AppInfoOutput;
+    type Output = StartScreenOutput;
     type Root = gtk::Box;
     type Widgets = AppWidgets;
 
@@ -39,12 +39,16 @@ impl SimpleComponent for AppInfoPage {
         root: &Self::Root,
         sender: ComponentSender<Self>,
     ) -> relm4::ComponentParts<Self> {
-        // let model = AppInfoPage { };
+        // let model = StartScreen { };
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
+        let model = StartScreen { settings: init };
 
-        let model = AppInfoPage { settings: init };
+        let main_container = gtk::Box::builder()
+        .orientation(gtk::Orientation::Vertical)
+        .build();
+
 
         let main_content_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
@@ -59,12 +63,12 @@ impl SimpleComponent for AppInfoPage {
         .build();
 
         // hbox_line1
-        let hbox_line1 = gtk::Box::builder()
+        let header_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
-        .css_classes(["app-info-header-box"])
+        .css_classes(["start-screen-header-box"])
         .build();
 
-        let app_icon_path = modules.pages_settings.app_info.app_icon.clone();
+        let app_icon_path: Option<String> = modules.pages_settings.start_screen.app_icon.clone();
 
         let app_icon: gtk::Image = get_image_from_path(
             app_icon_path,
@@ -72,47 +76,51 @@ impl SimpleComponent for AppInfoPage {
         );
 
         let label1 = gtk::Label::builder()
-        .label("Mecha Connect")
+        .label("Connect to Mecha")
         .halign(gtk::Align::Start)
         .build();
-        label1.style_context().add_class("app-info-header");
+        label1.style_context().add_class("start-screen-header");
 
-        hbox_line1.append(&app_icon);
-        hbox_line1.append(&label1);
+        header_box.append(&app_icon);
+        header_box.append(&label1);
 
-        main_content_box.append(&hbox_line1);   // main box
+        // main_content_box.append(&header_box);   // main box
+        main_container.append(&header_box);   // main box
 
         let sentence = gtk::Label::builder()
         .label("Please sign up on mecha.so before getting started.")
+        .css_classes(["start-screen-header-label"])
         .halign(gtk::Align::Start)
         .build();
 
-        sentence.style_context().add_class("app-info-header-label");
+        // sentence.style_context().add_class("start-screen-header-label");
 
         main_content_box.append(&sentence);
 
         let info_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
-        .css_classes(["app-info-steps-container"])
+        .css_classes(["start-screen-steps-container"])
         .build();
 
         let hbox_line2 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["app-info-steps-box"])
+        .css_classes(["start-screen-steps-box"])
         .build();
        
         let icon2: gtk::Image = get_image_from_path(
-            modules.pages_settings.app_info.virtual_network_icon.clone(),
-            &["app-info-steps-icon"],
+            modules.pages_settings.start_screen.virtual_network_icon.clone(),
+            &["start-screen-steps-icon"],
         );
 
         let label2 = gtk::Label::builder()
-        .label("Virtual networking to enable connecting to your machine remotely")
-        .css_classes(["app-info-steps-label"])
+        .label("Mesh Networking to enable global connectivity between your machines")
+        .css_classes(["start-screen-steps-label"])
         .wrap(true)
         .wrap_mode(pango::WrapMode::Word) 
         .hexpand(true)
+        // .justify(gtk::Justification::Fill)
+        .halign(gtk::Align::Start)
         .build();
 
         hbox_line2.append(&icon2);
@@ -123,20 +131,22 @@ impl SimpleComponent for AppInfoPage {
         let hbox_line3 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["app-info-steps-box"])
+        .css_classes(["start-screen-steps-box"])
         .build(); 
 
         let icon3: gtk::Image = get_image_from_path(
-            modules.pages_settings.app_info.real_time_icon.clone(),
-            &["app-info-steps-icon"],
+            modules.pages_settings.start_screen.real_time_icon.clone(),
+            &["start-screen-steps-icon"],
         );
 
         let label3 = gtk::Label::builder()
-        .label("Integrated Telemetry that collects logs and metrics in real-time")
-        .css_classes(["app-info-steps-label"])
+        .label("Integrated metrics and logs collection, compatible with OpenTelemetry")
+        .css_classes(["start-screen-steps-label"])
         .wrap(true)
         .wrap_mode(pango::WrapMode::Word) 
         .hexpand(true)
+        // .justify(gtk::Justification::Fill)
+        .halign(gtk::Align::Start)
         .build();
 
         hbox_line3.append(&icon3);
@@ -147,20 +157,22 @@ impl SimpleComponent for AppInfoPage {
         let hbox_line4 = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .hexpand(true)
-        .css_classes(["app-info-steps-box"])
+        .css_classes(["start-screen-steps-box"])
         .build();
 
         let icon4: gtk::Image = get_image_from_path(
-            modules.pages_settings.app_info.encypt_icon.clone(),
-            &["app-info-steps-icon"],
+            modules.pages_settings.start_screen.encypt_icon.clone(),
+            &["start-screen-steps-icon"],
         );
 
         let label4: gtk::Label = gtk::Label::builder()
-        .label("Secure and encrypted messaging from-to your machine")
-        .css_classes(["app-info-steps-label"])
+        .label("Identity management using secure x.509 certificates")
+        .css_classes(["start-screen-steps-label"])
         .wrap(true)
         .wrap_mode(pango::WrapMode::Word) 
         .hexpand(true)
+        // .justify(gtk::Justification::Fill)
+        .halign(gtk::Align::Start)
         .build();
 
         hbox_line4.append(&icon4);
@@ -185,7 +197,7 @@ impl SimpleComponent for AppInfoPage {
         back_button.add_css_class("footer-container-button");
 
         back_button.connect_clicked(clone!(@strong sender => move |_| {
-            let _ =  sender.output(AppInfoOutput::BackPressed);
+            let _ =  sender.output(StartScreenOutput::BackPressed);
           }));
 
         let next_icon_img: gtk::Image = get_image_from_path(
@@ -197,7 +209,7 @@ impl SimpleComponent for AppInfoPage {
         next_button.add_css_class("footer-container-button");
 
         next_button.connect_clicked(clone!(@strong sender => move |_| {
-          let _ =  sender.output(AppInfoOutput::NextPressed);
+          let _ =  sender.output(StartScreenOutput::NextPressed);
         }));
 
         back_button_box.append(&back_button);
@@ -206,8 +218,10 @@ impl SimpleComponent for AppInfoPage {
 
         footer_content_box.append(&footer_box);
         main_content_box.append(&footer_content_box);
+        main_container.append(&main_content_box);   // main box
 
-        root.append(&main_content_box);
+
+        root.append(&main_container);
 
         let widgets = AppWidgets {  };
 
