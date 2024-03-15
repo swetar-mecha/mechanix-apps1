@@ -33,7 +33,7 @@ impl MachineInfoHandler {
         }
     }
 
-    pub async fn run(&mut self, sender: Sender<Message>) {
+    pub async fn run(&mut self, sender: Sender<Message>)  {
 
         println!("Machine info handler run..");
 
@@ -104,6 +104,7 @@ impl MachineInfoHandler {
                 println!("icon_request err : {:?} ", error);
             }
         };
+
 
     }
 

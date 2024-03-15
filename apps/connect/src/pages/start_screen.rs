@@ -1,6 +1,6 @@
 use custom_utils::{get_gif_from_path, get_image_from_path};
 use gtk::prelude::*;
-use relm4::{gtk::{self, prelude::{WidgetExt, ButtonExt, StyleContextExt}, Button,  glib::clone, pango}, ComponentParts, ComponentSender, SimpleComponent};
+use relm4::{adw, gtk::{self, glib::{clone, main_depth}, pango, prelude::{ButtonExt, StyleContextExt, WidgetExt}, Button}, ComponentParts, ComponentSender, SimpleComponent};
 use crate::settings::{Modules, WidgetConfigs};
 
 pub struct Settings {
@@ -49,7 +49,6 @@ impl SimpleComponent for StartScreen {
         .orientation(gtk::Orientation::Vertical)
         .build();
 
-
         let main_content_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .css_classes(["app-container"])
@@ -62,7 +61,7 @@ impl SimpleComponent for StartScreen {
         .css_classes(["footer-container"])
         .build();
 
-        // hbox_line1
+        
         let header_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .css_classes(["start-screen-header-box"])
@@ -83,28 +82,61 @@ impl SimpleComponent for StartScreen {
 
         header_box.append(&app_icon);
         header_box.append(&label1);
-
-        // main_content_box.append(&header_box);   // main box
         main_container.append(&header_box);   // main box
 
-        let sentence = gtk::Label::builder()
+        let sign_up_box = gtk::Box::builder()
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["start-signup-box"])
+        .build();
+
+        let info_icon: gtk::Image = get_image_from_path(
+            modules.pages_settings.start_screen.info_icon.clone(),
+            &["info-icon"],
+        );
+
+        let info_sentence = gtk::Label::builder()
         .label("Please sign up on mecha.so before getting started.")
-        .css_classes(["start-screen-header-label"])
         .halign(gtk::Align::Start)
         .build();
 
-        // sentence.style_context().add_class("start-screen-header-label");
-
-        main_content_box.append(&sentence);
+        sign_up_box.append(&info_icon);
+        sign_up_box.append(&info_sentence);
+        main_content_box.append(&sign_up_box);
 
         let info_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .css_classes(["start-screen-steps-container"])
         .build();
 
+        // let hbox_line2 = gtk::Box::builder()
+        // .orientation(gtk::Orientation::Horizontal)
+        // .hexpand(true)
+        // .css_classes(["start-screen-steps-box"])
+        // .build();
+       
+        // let icon2: gtk::Image = get_image_from_path(
+        //     modules.pages_settings.start_screen.virtual_network_icon.clone(),
+        //     &["start-screen-steps-icon"],
+        // );
+
+        // let label2 = gtk::Label::builder()
+        // .label("Mesh Networking to enable global connectivity between your machines")
+        // .css_classes(["start-screen-steps-label"])
+        // .wrap(true)
+        // .wrap_mode(pango::WrapMode::Word) 
+        // .hexpand(true)
+        // // .justify(gtk::Justification::Fill)
+        // .halign(gtk::Align::Start)
+        // .build();
+
+        // hbox_line2.append(&icon2);
+        // hbox_line2.append(&label2);
+
+
         let hbox_line2 = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
+        .orientation(gtk::Orientation::Vertical)
         .hexpand(true)
+        .vexpand(true)
         .css_classes(["start-screen-steps-box"])
         .build();
        
@@ -118,22 +150,22 @@ impl SimpleComponent for StartScreen {
         .css_classes(["start-screen-steps-label"])
         .wrap(true)
         .wrap_mode(pango::WrapMode::Word) 
-        .hexpand(true)
-        // .justify(gtk::Justification::Fill)
-        .halign(gtk::Align::Start)
+        .vexpand(true)
+        .halign(gtk::Align::Center)
+        .valign(gtk::Align::End)
+        .justify(gtk::Justification::Center)
         .build();
 
         hbox_line2.append(&icon2);
         hbox_line2.append(&label2);
 
-        info_box.append(&hbox_line2);
-
         let hbox_line3 = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
+        .orientation(gtk::Orientation::Vertical)
         .hexpand(true)
+        .vexpand(true)
         .css_classes(["start-screen-steps-box"])
-        .build(); 
-
+        .build();
+       
         let icon3: gtk::Image = get_image_from_path(
             modules.pages_settings.start_screen.real_time_icon.clone(),
             &["start-screen-steps-icon"],
@@ -144,19 +176,19 @@ impl SimpleComponent for StartScreen {
         .css_classes(["start-screen-steps-label"])
         .wrap(true)
         .wrap_mode(pango::WrapMode::Word) 
-        .hexpand(true)
-        // .justify(gtk::Justification::Fill)
-        .halign(gtk::Align::Start)
+        .vexpand(true)
+        .halign(gtk::Align::Center)
+        .valign(gtk::Align::End)
+        .justify(gtk::Justification::Center)
         .build();
 
         hbox_line3.append(&icon3);
         hbox_line3.append(&label3);
 
-        info_box.append(&hbox_line3);
-
         let hbox_line4 = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
+        .orientation(gtk::Orientation::Vertical)
         .hexpand(true)
+        .vexpand(true)
         .css_classes(["start-screen-steps-box"])
         .build();
 
@@ -170,16 +202,32 @@ impl SimpleComponent for StartScreen {
         .css_classes(["start-screen-steps-label"])
         .wrap(true)
         .wrap_mode(pango::WrapMode::Word) 
-        .hexpand(true)
-        // .justify(gtk::Justification::Fill)
-        .halign(gtk::Align::Start)
+        .vexpand(true)
+        .halign(gtk::Align::Center)
+        .valign(gtk::Align::End)
+        .justify(gtk::Justification::Center)
         .build();
 
         hbox_line4.append(&icon4);
         hbox_line4.append(&label4);
 
-        info_box.append(&hbox_line4);
-        main_content_box.append(&info_box);
+        let carousel = adw::Carousel::builder()
+        .hexpand(true)
+        .spacing(15)
+        .width_request(340)
+        .height_request(300)
+        .css_classes(["carousel"])
+        .build();
+
+        carousel.append(&hbox_line2);
+        carousel.append(&hbox_line3);
+        carousel.append(&hbox_line4);
+
+        let carousel_dots = adw::CarouselIndicatorDots::builder().build();
+        carousel_dots.set_carousel(Some(&carousel));
+
+        main_content_box.append(&carousel);
+        main_content_box.append(&carousel_dots);
 
         let footer_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
@@ -230,5 +278,11 @@ impl SimpleComponent for StartScreen {
 
     fn update(&mut self, message: Self::Input, _sender: ComponentSender<Self>) {
     }
+
+
+
+}
+
+fn carousel_array(path: Option<String>) {
 
 }

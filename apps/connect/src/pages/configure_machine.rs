@@ -180,4 +180,5 @@ async fn init_services(sender: relm4::Sender<InputMessage>) {
     let _ = relm4::spawn(async move {
         let _ = config_machine_handler.run(sender_clone_1).await;
     });
+    // println!("check MachineInfoHandler : {:?}",config_machine_handler.);
 }

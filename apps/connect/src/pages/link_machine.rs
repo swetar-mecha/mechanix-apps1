@@ -92,6 +92,10 @@ impl AsyncComponent for LinkMachine {
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
+        let main_container = gtk::Box::builder()
+        .orientation(gtk::Orientation::Vertical)
+        .build();
+
         let main_content_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .css_classes(["app-container"])
@@ -127,12 +131,11 @@ impl AsyncComponent for LinkMachine {
         header_box.append(&app_icon);
         header_box.append(&header_label);
 
-        main_content_box.append(&header_box);
+        main_container.append(&header_box);
 
         let header_p = gtk::Label::builder()
             .label("Use this below code to connect this machine to your Mecha account")
-            // .css_classes(["link-machine-header-label"])
-            .css_classes(["start-screen-header-label"])
+            .css_classes(["link-machine-header-label"])
             .halign(gtk::Align::Start)
             .build();
 
@@ -255,7 +258,6 @@ impl AsyncComponent for LinkMachine {
         step2_label_box.append(&step2_label);
 
         let step2_text = gtk::Label::builder()
-            // .label("Use the Console app or developer CLI to add a new \nmachine")
             .label("Navigate to Machines > Add Machine")
             .css_classes(["link-machine-steps-text"])
             .build();
@@ -285,7 +287,6 @@ impl AsyncComponent for LinkMachine {
         step3_label_box.append(&step3_label);
 
         let step3_text = gtk::Label::builder()
-            // .label("Use this code when asked to enter the provisioning code")
             .label("Enter the code shown above when asked")
             .css_classes(["link-machine-steps-text"])
             .build();
@@ -339,8 +340,9 @@ impl AsyncComponent for LinkMachine {
 
         footer_content_box.append(&footer_box);
         main_content_box.append(&footer_content_box);
+        main_container.append(&main_content_box);
 
-        root.append(&main_content_box);
+        root.append(&main_container);
 
         let model = LinkMachine {
             settings: init,

@@ -142,37 +142,51 @@ impl AsyncComponent for MechaConnectApp {
         // // HERE grpc call
         // let generate_code_data = get_provision_data().await;
 
-        let start_screen: Controller<StartScreen> = StartScreen::builder()
-            .launch(StartScreenSettings {
-                modules: modules.clone(),
-                widget_configs: widget_configs.clone(),
-            })
-            .forward(
-                &sender.input_sender().clone(),
-                clone!(@strong modules => move|msg| match msg {
-                    StartScreenOutput::BackPressed => Message::ChangeScreen(Pages::StartScreen),
-                    StartScreenOutput::NextPressed => Message::ChangeScreen(Pages::CheckInternet)
-                }),
-            );
 
-        let check_internet = CheckInternet::builder()
-            .launch(CheckInternetSettings {
-                modules: modules.clone(),
-                widget_configs: widget_configs.clone(),
-            })
-            .forward(
-                sender.input_sender(),
-                clone!(@strong modules => move|msg| match msg {
-                    CheckInternetOutput::BackPressed => Message::ChangeScreen(Pages::StartScreen),
-                    CheckInternetOutput::LinkMachine => Message::ChangeScreen(Pages::LinkMachine),
-                    CheckInternetOutput::ConnectionNotFound => Message::ChangeScreen(Pages::NoInternet),
-                    CheckInternetOutput::ShowError(error) => {
-                        println!("MAIN ShowError : {:?} ", error);
-                        Message::ChangeScreen(Pages::SetupFailed(error, "check_internet".to_string()))
-                    },
-                    // CheckInternetOutput::ShowError => Message::ChangeScreen(Pages::SetupFailed()),
-                }),
-            );
+        let start_screen = create_start_screen(
+            settings.modules.clone(),
+            settings.widget_configs.clone(),
+            sender.input_sender().clone(),
+        );
+
+        let check_internet = create_check_internet(
+            settings.modules.clone(),
+            settings.widget_configs.clone(),
+            sender.input_sender().clone(),
+        );
+
+
+        // let start_screen: Controller<StartScreen> = StartScreen::builder()
+        //     .launch(StartScreenSettings {
+        //         modules: modules.clone(),
+        //         widget_configs: widget_configs.clone(),
+        //     })
+        //     .forward(
+        //         &sender.input_sender().clone(),
+        //         clone!(@strong modules => move|msg| match msg {
+        //             StartScreenOutput::BackPressed => Message::ChangeScreen(Pages::StartScreen),
+        //             StartScreenOutput::NextPressed => Message::ChangeScreen(Pages::CheckInternet)
+        //         }),
+        //     );
+
+        // let check_internet = CheckInternet::builder()
+        //     .launch(CheckInternetSettings {
+        //         modules: modules.clone(),
+        //         widget_configs: widget_configs.clone(),
+        //     })
+        //     .forward(
+        //         sender.input_sender(),
+        //         clone!(@strong modules => move|msg| match msg {
+        //             CheckInternetOutput::BackPressed => Message::ChangeScreen(Pages::StartScreen),
+        //             CheckInternetOutput::LinkMachine => Message::ChangeScreen(Pages::LinkMachine),
+        //             CheckInternetOutput::ConnectionNotFound => Message::ChangeScreen(Pages::NoInternet),
+        //             CheckInternetOutput::ShowError(error) => {
+        //                 println!("MAIN ShowError : {:?} ", error);
+        //                 Message::ChangeScreen(Pages::SetupFailed(error, "check_internet".to_string()))
+        //             },
+        //             // CheckInternetOutput::ShowError => Message::ChangeScreen(Pages::SetupFailed()),
+        //         }),
+        //     );
 
         let no_internet: Controller<NoInternet> = NoInternet::builder()
             .launch(NoInternetSettings {
@@ -333,6 +347,8 @@ impl AsyncComponent for MechaConnectApp {
 
         //Setting current active screen in stack
         pages_stack.set_visible_child_name(&current_page.to_string());
+        // pages_stack.set_transition_type(gtk::StackTransitionType::Crossfade);
+        // pages_stack.set_transition_duration(300);
 
         // add pages here
         let vbox = gtk::Box::builder()

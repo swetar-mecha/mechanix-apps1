@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::Duration};
 
 use crate::{server::provision_client::ProvisionManagerClient, settings::{Modules, WidgetConfigs}};
 use async_trait::async_trait;
@@ -12,6 +12,7 @@ use relm4::{
         Button,
     }, AsyncComponentSender
 };
+use tokio::sync::oneshot;
 
 pub struct Settings {
     pub modules: Modules,
@@ -19,6 +20,8 @@ pub struct Settings {
 }
 pub struct CheckInternet {
     settings: Settings,
+    task: Option<tokio::task::JoinHandle<()>>,
+    cancel_flag: Arc<AtomicBool>,
 }
 
 #[derive(Debug)]
@@ -30,7 +33,8 @@ pub enum InputMessage {
     ActiveScreen(String),
     NextScreen,
     ConnectionNotFound,
-    ShowError(String)
+    ShowError(String),
+    BackScreen
 }
 
 #[derive(Debug)]
@@ -65,7 +69,9 @@ impl AsyncComponent for CheckInternet {
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
-        let model = CheckInternet { settings: init };
+        let cancel_flag = Arc::new(AtomicBool::new(false));
+
+        let model = CheckInternet {settings:init, task: None, cancel_flag:  cancel_flag.clone() } ;
 
         let main_content_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -112,7 +118,8 @@ impl AsyncComponent for CheckInternet {
         back_button.add_css_class("footer-container-button");
 
         back_button.connect_clicked(clone!(@strong sender => move |_| {
-          let _ =  sender.output(CheckInternetOutput::BackPressed);
+            let _ =  sender.input_sender().send(InputMessage::BackScreen);
+            // let _ =  sender.output(CheckInternetOutput::BackPressed);
         }));
 
         let next_icon_img: gtk::Image = get_image_from_path(widget_configs.footer.next_icon, &[]);
@@ -147,8 +154,46 @@ impl AsyncComponent for CheckInternet {
         match message {
             InputMessage::ActiveScreen(text) => {
                 println!("active screen: {:?}", text);
+
+                let cancel_flag_clone = self.cancel_flag.clone();
+
                 let sender: relm4::Sender<InputMessage> = sender.input_sender().clone();
-                let _ = init_services(sender).await;
+                // self.task = init_services(sender).await;
+
+                // let task = tokio::spawn(async move {
+                //     let time_duration=Duration::from_millis(7000);
+                //     let _ = tokio::time::sleep(time_duration).await;
+                //     let _ = init_services(sender).await;
+                //     println!("ASYNC CALL");
+                // });
+
+                println!("cancel_flag_clone og {:?} ", cancel_flag_clone.to_owned());
+                println!("cancel_flag_clone check{:?} ", !cancel_flag_clone.load(Ordering::SeqCst));
+
+                if !cancel_flag_clone.load(Ordering::SeqCst) {
+                    let task = tokio::spawn(async move {
+                        let time_duration=Duration::from_millis(7000);
+                        let _ = tokio::time::sleep(time_duration).await;
+                        let _ = init_services(sender).await;
+                        println!("ASYNC CALL");
+                    });
+                }
+
+                // self.task = Some(task);
+                // self.cancel_rx = Some(cancel_tx);
+            },
+            InputMessage::BackScreen => {
+                println!("REDIRECT TO BACK SCREEN");
+                println!("BackScreen cancel_flag_clone {:?} ", self.cancel_flag.clone());
+
+                // if let Some(task) = self.task.take() {
+                //     task.abort_handle(); // Cancel pending API task
+                //     // task.abort(); // Cancel pending API task
+                // }
+                self.cancel_flag.store(true, Ordering::SeqCst);
+                let _ =  sender.output(CheckInternetOutput::BackPressed);
+                // let _ =  sender.output(CheckInternetOutput::LinkMachine);
+
             },
             InputMessage::NextScreen => {
                 let _ =  sender.output(CheckInternetOutput::LinkMachine);
@@ -167,21 +212,25 @@ impl AsyncComponent for CheckInternet {
 async fn init_services(sender: relm4::Sender<InputMessage>) {
     println!("init services called...");
 
-    let time_duration=Duration::from_millis(7000);
-    // let time_duration=Duration::from_millis(400000);
-    let _ = tokio::time::sleep(time_duration).await;
+    // let time_duration=Duration::from_millis(7000);
+    // // let time_duration=Duration::from_millis(400000);
+    // let _ = tokio::time::sleep(time_duration).await;
+
+    println!("INIT SERVICE IN PROGRESS....");
+
+
 
     match ProvisionManagerClient::new().await {
         Ok(mut client) => {
             match client.ping().await {
                 Ok(response) => {
                     println!("ping response {:?} ", response);
-                   if response.code == "success" {
+                    if response.code == "success" {
                     let _ = sender.send(InputMessage::NextScreen);
-                   }
-                   else {
+                    }
+                    else {
                     let _ = sender.send(InputMessage::ConnectionNotFound);
-                   }
+                    }
                 },
                 Err(error) => {
                     // ping error: status: Internal, message: "deadline has elapsed", details: [], metadata: MetadataMap { headers: {"content-type": "application/grpc", "date": "Mon, 11 Mar 2024 07:31:12 GMT", "content-length": "0"} }
@@ -209,4 +258,5 @@ async fn init_services(sender: relm4::Sender<InputMessage>) {
 
         }
     };
+
 }

@@ -27,27 +27,34 @@
     margin: 10px 10px;
 }
 
-.start-screen-header-label {
+/* .start-screen-header-label {
     font-weight: 500;
     font-size: 16px;
     line-height: 22px;
     color: #B7BBC8;
     margin: 10px 10px;
-}
+} */
 
 .app-icon {
     min-width: 48px;
     min-height: 48px;
 }
 
+.info-icon {
+    min-width: 20px;
+    min-height: 20px;
+    margin-right: 10px;
+}
+
 /* .link-machine-header-box */
 .start-screen-header-box {
     min-width: 167px;
     min-height: 28px;
-    padding: 18px 20px;
-    box-shadow: 0px 12px 15px rgb(21, 23, 29);
-    background-color: rgba(43, 44, 48, 0.8);
-    /* box-shadow: 0px 8px 5px rgb(35, 39, 49); */
+    padding: 15px 20px;
+}
+
+.start-signup-box{
+    padding: 0px 10px;
 }
 
 .start-screen-steps-container {
@@ -56,8 +63,7 @@
 }
 
 .start-screen-steps-label {
-    margin: 0px 20px 0px 30px;
-    text-align: left;
+    margin: 10px 30px 10px 30px; 
 }
 
 .start-screen-steps-box {
@@ -67,12 +73,19 @@
     font-weight: 500;
     font-size: 18px;
     line-height: 26px;
-    padding: 10px 0px 10px 0px;
+    /* padding: 10px 0px 10px 0px; */
+    padding: 30px 20px 30px 20px;
+    margin: 20px 10px 25px 10px;
+
+    background-color: #15171D;
+    border-radius: 10px;
 }
 
 .start-screen-steps-icon {
     min-width: 76px;
     min-height: 76px;
+
+    margin: 15px 0px;
 }
 
 .check-internet-text {
@@ -98,17 +111,17 @@
     font-weight: 500;
     font-size: 16px;
     line-height: 22px;
-    margin: 15px 5px;
     color: #B7BBC8;
+    padding: 0px 10px;
 }
 
 .link-machine-border-box {
-    /* border: 2px solid #202431; */
     border-radius: 4px;
     font-weight: 500;
     font-size: 28px;
     line-height: 35.73px;
     padding: 18px 16px 18px 16px;
+    margin: 5px 0px 0px 0px;
     background-color: #15171D;
 }
 
@@ -117,7 +130,7 @@
 }
 
 .link-machine-code {
-    font-weight: 500;
+    font-weight: 700;
     font-size: 28px;
     line-height: 35.73px;
     letter-spacing: 5px;
@@ -297,10 +310,14 @@
 
 
 .custom-progress-bar trough {
-    min-height: 2px;
+    min-height: 3px;
 }
 
 .custom-progress-bar trough progress {
     background-image: conic-gradient(#3283E8 100%, #eee 0);
     min-height: 2px;
+}
+
+.carousel { 
+	margin-bottom: -15px;
 }

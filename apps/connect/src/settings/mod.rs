@@ -146,6 +146,7 @@ pub struct StartScreenSettings {
     pub virtual_network_icon:  Option<String>,
     pub real_time_icon:  Option<String>,
     pub encypt_icon:  Option<String>,
+    pub info_icon:  Option<String>,
 }
 
 impl Default for StartScreenSettings {
@@ -155,6 +156,7 @@ impl Default for StartScreenSettings {
             virtual_network_icon: None,
             real_time_icon: None,
             encypt_icon: None,
+            info_icon: None,
         }
     }
 }

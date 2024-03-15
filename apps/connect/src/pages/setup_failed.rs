@@ -39,7 +39,7 @@ pub enum InputMessage {
 }
 
 pub struct AppWidgets {
-    errorMessage : gtk::Label,
+    error_message : gtk::Label,
 }
 
 impl SimpleComponent for SetupFailed {
@@ -174,7 +174,7 @@ impl SimpleComponent for SetupFailed {
 
 
         let widgets = AppWidgets {
-            errorMessage : info_desc
+            error_message : info_desc
         };
 
         ComponentParts { model, widgets }
@@ -182,7 +182,7 @@ impl SimpleComponent for SetupFailed {
 
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
         
-        println!("in update: {:?}", self.from_screen);
+        println!("setup failed update: {:?}", self.from_screen);
         match message {
             InputMessage::ShowError(message, from_screen) => {
                 self.error_message = message.to_owned();
@@ -196,6 +196,6 @@ impl SimpleComponent for SetupFailed {
     }
 
     fn update_view(&self, widgets: &mut Self::Widgets, sender: ComponentSender<Self>) {
-        widgets.errorMessage.set_label(&self.error_message);
+        widgets.error_message.set_label(&self.error_message);
     }
 }

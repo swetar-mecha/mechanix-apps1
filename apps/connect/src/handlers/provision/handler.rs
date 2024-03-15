@@ -1,4 +1,3 @@
-use std::time::Instant;
 use std::{io::Error, time::Duration};
 use anyhow::{bail, Result};
 use relm4::Sender;
@@ -59,11 +58,15 @@ impl LinkMachineHandler {
                                         let _ = p_code_message_tx.send(PCodeHandlerMessage::CodeChanged { code: code.clone() }).await;
                                         let _ = sender.send(Message::CodeChanged(code.clone()));
 
+                                        // let mut target_value = 1.0;  
+                                        // let mut interval = time::interval(time::Duration::from_secs(1));
                                         let mut target_value = 1.0;  
-                                        let mut interval = time::interval(time::Duration::from_secs(1));
-                                        for _i in 0..60 {
+                                        let mut interval = time::interval(time::Duration::from_millis(1000));
+                                        // for _i in 0..60 {
+                                        loop {
                                             println!("fraction_value {:?} ", target_value.to_owned());
 
+                                            // interval.tick().await;
                                             interval.tick().await;
                                             println!("interval check {:?} ", interval.period());
                                             target_value = target_value-0.0166;
