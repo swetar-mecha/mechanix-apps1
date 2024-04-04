@@ -39,7 +39,6 @@ impl SimpleComponent for StartScreen {
         root: &Self::Root,
         sender: ComponentSender<Self>,
     ) -> relm4::ComponentParts<Self> {
-        // let model = StartScreen { };
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
@@ -74,19 +73,21 @@ impl SimpleComponent for StartScreen {
             &["app-icon"],
         );
 
-        let label1 = gtk::Label::builder()
+        let header_label = gtk::Label::builder()
         .label("Connect to Mecha")
         .halign(gtk::Align::Start)
         .build();
-        label1.style_context().add_class("start-screen-header");
+
+        header_label.style_context().add_class("start-screen-header");
 
         header_box.append(&app_icon);
-        header_box.append(&label1);
+        header_box.append(&header_label);
+      
         main_container.append(&header_box);   // main box
 
-        let sign_up_box = gtk::Box::builder()
+        let info_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
-        .css_classes(["start-signup-box"])
+        .css_classes(["start-header-p"])
         .build();
 
         let info_icon: gtk::Image = get_image_from_path(
@@ -99,39 +100,9 @@ impl SimpleComponent for StartScreen {
         .halign(gtk::Align::Start)
         .build();
 
-        sign_up_box.append(&info_icon);
-        sign_up_box.append(&info_sentence);
-        main_content_box.append(&sign_up_box);
-
-        let info_box = gtk::Box::builder()
-        .orientation(gtk::Orientation::Vertical)
-        .css_classes(["start-screen-steps-container"])
-        .build();
-
-        // let hbox_line2 = gtk::Box::builder()
-        // .orientation(gtk::Orientation::Horizontal)
-        // .hexpand(true)
-        // .css_classes(["start-screen-steps-box"])
-        // .build();
-       
-        // let icon2: gtk::Image = get_image_from_path(
-        //     modules.pages_settings.start_screen.virtual_network_icon.clone(),
-        //     &["start-screen-steps-icon"],
-        // );
-
-        // let label2 = gtk::Label::builder()
-        // .label("Mesh Networking to enable global connectivity between your machines")
-        // .css_classes(["start-screen-steps-label"])
-        // .wrap(true)
-        // .wrap_mode(pango::WrapMode::Word) 
-        // .hexpand(true)
-        // // .justify(gtk::Justification::Fill)
-        // .halign(gtk::Align::Start)
-        // .build();
-
-        // hbox_line2.append(&icon2);
-        // hbox_line2.append(&label2);
-
+        info_box.append(&info_icon);
+        info_box.append(&info_sentence);
+        main_content_box.append(&info_box);
 
         let hbox_line2 = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
@@ -277,12 +248,9 @@ impl SimpleComponent for StartScreen {
     }
 
     fn update(&mut self, message: Self::Input, _sender: ComponentSender<Self>) {
+    
     }
 
 
-
-}
-
-fn carousel_array(path: Option<String>) {
 
 }

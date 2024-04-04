@@ -1,4 +1,4 @@
-use crate::settings::{Modules, WidgetConfigs};
+use crate::{services::MachineInformation, settings::{Modules, WidgetConfigs}};
 use custom_utils::{get_gif_from_path, get_image_from_path};
 use gtk::prelude::*;
 use relm4::{
@@ -11,6 +11,7 @@ use relm4::{
     ComponentParts, ComponentSender, SimpleComponent,
 };
 
+
 pub struct Settings {
     pub modules: Modules,
     pub widget_configs: WidgetConfigs,
@@ -18,12 +19,12 @@ pub struct Settings {
 
 pub struct SetupSuccess {
     settings: Settings,
+    machine_info: Option<MachineInformation>
 }
 
 #[derive(Debug)]
-enum AppInput {
-    Increment,
-    Decrement,
+pub enum InputMessage {
+    ActiveScreen(String)
 }
 
 #[derive(Debug)]
@@ -36,7 +37,7 @@ pub struct AppWidgets {}
 
 impl SimpleComponent for SetupSuccess {
     type Init = Settings;
-    type Input = ();
+    type Input = InputMessage;
     type Output = SetupSuccessOutput;
     type Root = gtk::Box;
     type Widgets = AppWidgets;
@@ -53,7 +54,7 @@ impl SimpleComponent for SetupSuccess {
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
-        let model = SetupSuccess { settings: init };
+        let model = SetupSuccess { settings: init, machine_info: None };
 
         let main_content_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -72,25 +73,23 @@ impl SimpleComponent for SetupSuccess {
         let paintable = get_gif_from_path(gif_path);
 
         let image_from = gtk::Image::builder()
-            .width_request(370)
-            .height_request(370)
-            .css_classes(["gif-img"])
+            .width_request(290)
+            .height_request(290)
             .paintable(&paintable)
+            .css_classes(["gif-img"])
+            .vexpand(true)
+            .valign(gtk::Align::Center)
             .build();
 
         // bold
         let label1: gtk::Label = gtk::Label::builder()
             .label("Machine is now connected to your Mecha account")
+            .halign(gtk::Align::Center)
             .build();
 
-        // let label2: gtk::Label = gtk::Label::builder()
-        //     .label("Your machine is connected to Mecha cloud")
-        //     .css_classes(["setup-success-info"])
-        //     .build();
-
+ 
         main_content_box.append(&image_from);
         main_content_box.append(&label1);
-        // main_content_box.append(&label2);
 
         // footer_box
         let footer_box = gtk::Box::builder()
@@ -99,14 +98,14 @@ impl SimpleComponent for SetupSuccess {
             .build();
         let button_box = gtk::Box::builder().hexpand(true).build();
 
-        // let back_icon_img: gtk::Image = get_image_from_path(widget_configs.footer.back_icon, &[]);
-        // let back_button = Button::builder().build();
-        // back_button.set_child(Some(&back_icon_img));
-        // back_button.add_css_class("footer-container-button");
+        let back_icon_img: gtk::Image = get_image_from_path(widget_configs.footer.back_icon, &[]);
+        let back_button = Button::builder().build();
+        back_button.set_child(Some(&back_icon_img));
+        back_button.add_css_class("footer-container-button");
 
-        // back_button.connect_clicked(clone!(@strong sender => move |_| {
-        //   let _ =  sender.output(SetupSuccessOutput::BackPressed);
-        // }));
+        back_button.connect_clicked(clone!(@strong sender => move |_| {
+          let _ =  sender.output(SetupSuccessOutput::BackPressed);
+        }));
 
         let next_icon_img: gtk::Image = get_image_from_path(widget_configs.footer.next_icon, &[]);
         let next_button = Button::new();
@@ -117,7 +116,7 @@ impl SimpleComponent for SetupSuccess {
           let _ =  sender.output(SetupSuccessOutput::NextPressed);
         }));
 
-        // button_box.append(&back_button);
+        // button_box.append(&back_button); // remove
         footer_box.append(&button_box);
         footer_box.append(&next_button);
 
@@ -129,5 +128,15 @@ impl SimpleComponent for SetupSuccess {
         let widgets = AppWidgets {};
 
         ComponentParts { model, widgets }
+    }
+
+    fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
+
+        match message {
+            InputMessage::ActiveScreen(text) => {
+                println!("active screen: {:?}", text);
+            },
+        }
+        
     }
 }

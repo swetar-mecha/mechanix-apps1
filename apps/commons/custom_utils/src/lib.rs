@@ -1,5 +1,5 @@
-use gtk::{gdk, gio, glib};
-use relm4::gtk::{self, prelude::FileExt}; 
+use gtk::{gdk, gio};
+use relm4::gtk::{self, glib::Bytes, prelude::FileExt}; 
 use custom_widgets::gif_paintable::GifPaintable;
 
 pub fn get_image_from_path(path: Option<String>, css_classes: &[&str]) -> gtk::Image {
@@ -37,4 +37,37 @@ pub fn get_gif_from_path(gif_path: Option<String>) -> GifPaintable {
         None => (),
     }
     paintable
+}
+
+// pub async fn get_img_from_url(path: Option<String>, css_classes: &[&str]) -> gtk::Image {
+//     let image = gtk::Image::builder().css_classes(css_classes).build();
+ 
+//     let response = reqwest::get(path.unwrap()).await;
+//     let image_bytes = response.unwrap().bytes().await.expect("Failed to get image bytes");
+//     let bytes = Bytes::from(&image_bytes);
+  
+//     match gdk::Texture::from_bytes(&bytes) {
+//         Ok(image_asset_paintable) => {
+//             image.set_paintable(Option::from(&image_asset_paintable));
+//         },
+//         Err(_) => (),
+//     } 
+//     image
+// }
+
+pub async fn get_image_bytes(path: Option<String>) -> Option<relm4::gtk::glib::Bytes> {
+    let response = reqwest::get(path.unwrap()).await;
+    let image_bytes = response.unwrap().bytes().await.expect("Failed to get image bytes");
+    let bytes = Bytes::from(&image_bytes);
+    Some(bytes)
+}
+
+pub fn get_image_from_url(bytes: Option<Bytes>, css_classes: &[&str]) -> gdk::Texture {
+ 
+    match gdk::Texture::from_bytes(&bytes.unwrap()) {
+        Ok(image_asset_paintable) => {
+            image_asset_paintable
+        },
+        Err(_) => { todo!( )},
+    } 
 }

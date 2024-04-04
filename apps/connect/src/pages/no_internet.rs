@@ -20,15 +20,9 @@ pub struct NoInternet {
 }
 
 #[derive(Debug)]
-enum AppInput {
-    Increment,
-    Decrement,
-}
-
-#[derive(Debug)]
 pub enum PageOutput {
     BackPressed,
-    NextPressed,
+    SettingsPressed,
 }
 
 pub struct AppWidgets {}
@@ -113,7 +107,7 @@ impl SimpleComponent for NoInternet {
         settings_button.add_css_class("footer-container-button");
 
         settings_button.connect_clicked(clone!(@strong sender => move |_| {
-          let _ =  sender.output(PageOutput::NextPressed);
+          let _ =  sender.output(PageOutput::SettingsPressed);
         }));
 
         back_button_box.append(&back_button);

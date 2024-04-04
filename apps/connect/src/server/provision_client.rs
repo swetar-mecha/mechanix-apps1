@@ -28,7 +28,6 @@ impl ProvisionManagerClient {
         let client: ProvisioningServiceClient<Channel> = match ProvisioningServiceClient::connect(url).await {
             Ok(client) => client,
             Err(e) => {
-                // eprintln!("error in ProvisioningServiceClient: {:?} ", e);
                 bail!("Error in ProvisioningServiceClient: {:?}", e);
             }
            
@@ -37,7 +36,7 @@ impl ProvisionManagerClient {
         Ok(Self { client })
     }
 
-    pub async fn generate_code(&mut self) -> Result<ProvisioningCodeResponse, Box<dyn std::error::Error>> {
+    pub async fn generate_code(&mut self) -> Result<ProvisioningCodeResponse> {
         let request = tonic::Request::new(Empty {});
 
         let response = match self.client.generate_code(request).await {
@@ -46,23 +45,16 @@ impl ProvisionManagerClient {
                 response.into_inner()
             },
             Err(e) => {
-                eprintln!("error in getting code: {:?} ", e);
-                return Err(Box::new(e));
-                // bail!("Error in getting code: {:?}", e);
+                bail!("Error in getting code: {:?}", e);
             },
         };
 
-        // let response: ProvisioningCodeResponse = ProvisioningCodeResponse{code: String::from("TEST123")};
         Ok(response)
     }
 
-    pub async fn provision_by_code(&mut self, 
-        code: String) 
-        -> Result<ProvisioningStatusResponse, Box<dyn std::error::Error>> {
+    pub async fn provision_by_code(&mut self, code: String) -> Result<ProvisioningStatusResponse> {
 
-        let request: tonic::Request<ProvisioningCodeRequest> = tonic::Request::new(ProvisioningCodeRequest
-            {
-                code: code.clone() as String});
+        let request: tonic::Request<ProvisioningCodeRequest> = tonic::Request::new(ProvisioningCodeRequest {code: code.clone() as String});
 
         let response = match self.client.provision_by_code(request).await {
             Ok(response) => {
@@ -70,39 +62,25 @@ impl ProvisionManagerClient {
                 response.into_inner()
             },
             Err(e) => {
-                // eprintln!("error in provision by code: {:?} ", e);
-                // bail!("Error in provision by code: {:?}", e);
-                return Err(Box::new(e));
+                bail!("Error in getting code: {:?}", e);
             },
         };
 
-        // let response: ProvisioningStatusResponse = ProvisioningStatusResponse{success: true};
         Ok(response)
     }
  
-    pub async fn ping(&mut self) ->  Result<PingResponse, Box<dyn std::error::Error>> {
+    pub async fn ping(&mut self) ->  Result<PingResponse> {
         let request = tonic::Request::new(Empty {});
 
         let response = match self.client.ping(request).await {
             Ok(response) => {
                 println!("grpc function: ping response: {:?} ", response);   
-                //  true - connectivity yes
-                //  false - connectivity no
                 response.into_inner()
             },
             Err(e) => {
-                // // eprintln!("error in provision by code: {:?} ", e);
-                // // bail!("Error in provision by code: {:?}", e);
-                // return Err(Box::new(e));
-                return Err(Box::new(e));
+                bail!(e);
             },
         };
-
-        // let response = PingResponse{
-        //     code : String::from("false"),   // success
-        //     message: String::from(""),
-        // };
-
         Ok(response)
     }
 

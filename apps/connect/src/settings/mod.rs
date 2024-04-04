@@ -244,13 +244,15 @@ impl Default for SetupFailedSettings {
 pub struct DeviceInfoSettings {
     pub user_profile_img: Option<String>,
     pub active_status_icon: Option<String>,
+    pub not_active_status_icon: Option<String>,
 }
 
 impl Default for DeviceInfoSettings {
     fn default() -> Self {
         Self {
             user_profile_img: None,
-            active_status_icon: None
+            active_status_icon: None,
+            not_active_status_icon: None,
         }
     }
 }

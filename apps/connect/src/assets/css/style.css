@@ -1,5 +1,6 @@
 .window {
-    background-color: #05070A;
+    background-color: #070809;
+    /* background-color: #000000; */
     font-family: 'Space Grotesk';
     /* color:#ffffff; */
     color:#d47a7a;
@@ -41,8 +42,8 @@
 }
 
 .info-icon {
-    min-width: 20px;
-    min-height: 20px;
+    min-width: 24px;
+    min-height: 24px;
     margin-right: 10px;
 }
 
@@ -50,11 +51,12 @@
 .start-screen-header-box {
     min-width: 167px;
     min-height: 28px;
-    padding: 15px 20px;
+    padding: 15px 20px 12px 20px;
 }
 
-.start-signup-box{
+.start-header-p {
     padding: 0px 10px;
+    font-size: 18px;
 }
 
 .start-screen-steps-container {
@@ -100,16 +102,9 @@
     color:#FAFBFC;
 }
 
-.link-machine-header {
-    font-weight: 700;
-    font-size: 26px;
-    line-height: 34px;
-    margin: 10px 10px;
-}
-
 .link-machine-header-label {
     font-weight: 500;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 22px;
     color: #B7BBC8;
     padding: 0px 10px;
@@ -172,7 +167,7 @@
 }
 
 .gif-img {
-    margin: 12px 40px 12px 40px;
+    margin: 32px 40px 20px 40px;
 }
 
 .configure-text {
@@ -187,9 +182,9 @@
 }
 
 .timeout-img {
-    min-width: 348px;
-    min-height: 348px;
-    margin: 12px 40px 12px 40px;
+    min-width: 318px;
+    min-height: 318px;
+    margin: 30px 40px 20px 40px;
 }
 
 .setup-status-label {
@@ -197,13 +192,6 @@
     font-size: 20px;
     line-height: 30px;
     /* margin: 20px 0px; */
-}
-
-.setup-success-info {
-    font-weight: 500;
-    font-size: 16px;
-    line-height: 20.42px;
-    color: #B7BBC8;
 }
 
 .setup-fail-border-box {
@@ -223,10 +211,6 @@
     padding: 4px 10px;
     background-color: #202124;
     border-radius: 10px;
-}
-
-.fail-text-bubble {
-    
 }
 
 .device-info-border-box {
@@ -254,9 +238,15 @@
     line-height: 22px;
 }
 
+.serial-no-value {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+}
+
 .device-info-sentence {
     font-weight: 500;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 24px;
     color: #B7BBC8;
     margin:10px 5px;
@@ -315,9 +305,28 @@
 
 .custom-progress-bar trough progress {
     background-image: conic-gradient(#3283E8 100%, #eee 0);
-    min-height: 2px;
+    min-height: 3px;
 }
 
 .carousel { 
 	margin-bottom: -15px;
 }
+
+/* .custom-toast toastoverlay toast {
+	background-color: #3b3f49;
+} */
+
+.custom-toast {
+	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: 25px;
+	padding: 5px 10px; 
+    margin: 6px;
+}
+
+.power-option-revealer {
+    min-height: 50px;
+}
+
+.configure-revealer {
+    min-height: 20px;
+} 

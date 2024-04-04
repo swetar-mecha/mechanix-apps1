@@ -1,4 +1,4 @@
-use crate::{settings::{Modules, WidgetConfigs}, Pages};
+use crate::settings::{Modules, WidgetConfigs};
 use custom_utils::{get_gif_from_path, get_image_from_path};
 use gtk::prelude::*;
 use relm4::{
@@ -27,8 +27,6 @@ enum AppInput {}
 
 #[derive(Debug)]
 pub enum SetupFailOutput {
-    BackPressed,
-    NextPressed,
     refresh(String),
 }
 
@@ -86,10 +84,12 @@ impl SimpleComponent for SetupFailed {
         let paintable = get_gif_from_path(gif_path);
 
         let image_from = gtk::Image::builder()
-            .width_request(370)
-            .height_request(370)
-            .css_classes(["gif-img"])
+            .width_request(290)
+            .height_request(290)
             .paintable(&paintable)
+            .css_classes(["gif-img"])
+            .vexpand(true)
+            .valign(gtk::Align::Center)
             .build();
 
         main_content_box.append(&image_from);
@@ -141,7 +141,8 @@ impl SimpleComponent for SetupFailed {
         back_button.add_css_class("footer-container-button");
 
         back_button.connect_clicked(clone!(@strong sender => move |_| {
-          let _ =  sender.output(SetupFailOutput::BackPressed);
+        //   let _ =  sender.output(SetupFailOutput::BackPressed);
+            let _ = sender.input(InputMessage::refresh);
         }));
 
         let refresh_icon_img: gtk::Image =
@@ -151,10 +152,7 @@ impl SimpleComponent for SetupFailed {
         refresh_button.add_css_class("footer-container-button");
 
         refresh_button.connect_clicked(clone!(@strong sender => move |_| {
-        //   let _ =  sender.output(SetupFailOutput::NextPressed);
-        let _ = sender.input(InputMessage::refresh);
-
-        //   let _ =  sender.output(SetupFailOutput::BackPressed);
+            let _ = sender.input(InputMessage::refresh);
         }));
 
         back_button_box.append(&back_button);
@@ -181,12 +179,10 @@ impl SimpleComponent for SetupFailed {
     }
 
     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>) {
-        
-        println!("setup failed update: {:?}", self.from_screen);
         match message {
             InputMessage::ShowError(message, from_screen) => {
-                self.error_message = message.to_owned();
-                self.from_screen = from_screen.to_owned();
+                self.error_message = message.clone();
+                self.from_screen = from_screen.clone();
             },
             InputMessage::refresh => {
                 let _ =  sender.output(SetupFailOutput::refresh(self.from_screen.clone()));

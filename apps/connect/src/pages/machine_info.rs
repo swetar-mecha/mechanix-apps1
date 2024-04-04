@@ -1,8 +1,10 @@
 use gtk::prelude::*;
-use relm4::{component::{AsyncComponent, AsyncComponentParts}, gtk::{self, glib::clone, pango, prelude::{ButtonExt, WidgetExt}, Button}, AsyncComponentSender, ComponentParts, ComponentSender, RelmApp, SimpleComponent};
+use image::codecs::webp;
+use relm4::{component::{AsyncComponent, AsyncComponentParts}, gtk::{self, glib::clone, pango, prelude::{ButtonExt, WidgetExt}, Button}, AsyncComponentSender};
+
 use tonic::async_trait;
-use crate::settings::{Modules, WidgetConfigs};
-use custom_utils::get_image_from_path;
+use crate::{handlers::machine_info::handler::machine_status_service, services::MachineInformation, settings::{Modules, WidgetConfigs}};
+use custom_utils::{get_image_bytes, get_image_from_path, get_image_from_url};
 
 pub struct Settings {
     pub modules: Modules,
@@ -10,7 +12,12 @@ pub struct Settings {
 }
 
 pub struct MachineInfo {
-    settings: Settings
+    settings: Settings,
+    machine_id: String,
+    name: String,
+    icon_path: Option<String>,
+    status: bool,
+    icon_bytes: Option<relm4::gtk::glib::Bytes> 
 }
 
 #[derive(Debug)]
@@ -21,17 +28,23 @@ enum AppInput {
 
 #[derive(Debug)]
 pub enum InputMessage {
-    ActiveScreen(String),
+    ActiveScreen(Option<MachineInformation>),
+    ShowStatus(bool),
 }
 
 
 #[derive(Debug)]
 pub enum DevicePageOutput {
-    BackPressed,
-    NextPressed
+    Exit,
 }
 
 pub struct AppWidgets {
+    name_label: gtk::Label,
+    id_label: gtk::Label,
+    profile_icon: gtk::Image,
+    active_status_icon: gtk::Image,
+    not_active_status_icon: gtk::Image,
+    toast_label: gtk::Label,
 }
 
 #[async_trait(?Send)]
@@ -60,8 +73,6 @@ impl AsyncComponent for MachineInfo {
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
-        let model = MachineInfo { settings: init };
-
         let main_content_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical) 
         .css_classes(["app-container"])
@@ -75,6 +86,7 @@ impl AsyncComponent for MachineInfo {
         .css_classes(["footer-container"])
         .build();
 
+        // let user_profile_icon = gtk::Image::new();
         let user_profile_icon: gtk::Image = get_image_from_path(
             modules.pages_settings.device_info.user_profile_img.clone(),
             &["device-info-icon"],
@@ -89,19 +101,28 @@ impl AsyncComponent for MachineInfo {
         .build();
 
         // bold
-        let user_label: gtk::Label = gtk::Label::builder()
-        .label("Shoaib's Compute")
+        let machine_name: gtk::Label = gtk::Label::builder()
+        // .label("Shoaib's Compute")
+        .label("".to_string())
         .halign(gtk::Align::Center)
         .css_classes(["about-device-name"])
         .build();
 
-        let status_img: gtk::Image = get_image_from_path(
+        let active_status_icon: gtk::Image = get_image_from_path(
             modules.pages_settings.device_info.active_status_icon.clone(),
             &["device-info-status-icon"],
         );
+        active_status_icon.set_visible(false);
 
-        status_box.append(&user_label);
-        status_box.append(&status_img);
+        let not_active_status_icon: gtk::Image = get_image_from_path(
+            modules.pages_settings.device_info.not_active_status_icon.clone(),
+            &["device-info-status-icon"],
+        );
+        not_active_status_icon.set_visible(false);
+
+        status_box.append(&machine_name);
+        status_box.append(&active_status_icon);
+        status_box.append(&not_active_status_icon);
 
         main_content_box.append(&status_box);
 
@@ -119,63 +140,14 @@ impl AsyncComponent for MachineInfo {
         .build();
 
         let id_value: gtk::Label = gtk::Label::builder()
-        .label("1675 5467 398765")
+        .label("-")
         .halign(gtk::Align::End)
         .css_classes(["about-device-id"])
         .build();
 
         id_box.append(&id_label);
         id_box.append(&id_value);
-
-        let certi_box_1 = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .hexpand(true)
-        .css_classes(["device-info-border-box"])
-        .build();
-
-        let certificate_serial_no: gtk::Label = gtk::Label::builder()
-        .label("Certificate Serial No")
-        .hexpand(true)
-        .halign(gtk::Align::Start)
-        .css_classes(["device-id-text", "about-device-id"])
-        .build();
-
-        let serial_no_value: gtk::Label = gtk::Label::builder()
-        .label("GCR/BC/30124622")
-        .halign(gtk::Align::End)
-        .css_classes(["about-device-id"])
-        .build();
-     
-
-        certi_box_1.append(&certificate_serial_no);
-        certi_box_1.append(&serial_no_value);
-
-        let certi_box_2 = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .hexpand(true)
-        .css_classes(["device-info-border-box"])
-        .build();
-
-        let certificate_valid_upto: gtk::Label = gtk::Label::builder()
-        .label("Certificate Valid Upto")
-        .hexpand(true)
-        .halign(gtk::Align::Start)
-        .css_classes(["device-id-text", "about-device-id"])
-        .build();
-
-        let certi_valid_value: gtk::Label = gtk::Label::builder()
-        .label("12 March 2029")
-        .halign(gtk::Align::End)
-        .css_classes(["about-device-id"])
-        .build();
-     
-
-        certi_box_2.append(&certificate_valid_upto);
-        certi_box_2.append(&certi_valid_value);
-
         main_content_box.append(&id_box);
-        main_content_box.append(&certi_box_1);
-        // main_content_box.append(&certi_box_2);
 
         let sentence_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
@@ -193,6 +165,17 @@ impl AsyncComponent for MachineInfo {
 
         sentence_box.append(&sentence);
         main_content_box.append(&sentence_box);
+
+        let toast_label  = gtk::Label::builder()
+        .label(String::from("Machine Agent not running"))
+        .halign(gtk::Align::Center)
+        .css_classes(["custom-toast"])
+        .build();
+
+        let toast_overlay = gtk::Overlay::builder().build();
+        toast_overlay.add_overlay(&toast_label);
+        toast_overlay.set_accessible_role(gtk::AccessibleRole::Generic);
+        main_content_box.append(&toast_overlay);
 
         let footer_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
@@ -212,7 +195,7 @@ impl AsyncComponent for MachineInfo {
         exit_button.add_css_class("footer-container-button");
 
         exit_button.connect_clicked(clone!(@strong sender => move |_| {
-            let _ =  sender.output(DevicePageOutput::BackPressed);
+            let _ =  sender.output(DevicePageOutput::Exit);
           }));
 
         // let back_icon_img: gtk::Image = get_image_from_path(
@@ -227,7 +210,6 @@ impl AsyncComponent for MachineInfo {
         //     let _ =  sender.output(DevicePageOutput::BackPressed);
         //   }));
 
-
         // let trash_icon_img: gtk::Image = get_image_from_path(
         //     widget_configs.footer.trash_icon,
         //     &[],
@@ -236,12 +218,10 @@ impl AsyncComponent for MachineInfo {
         // trash_button.set_child(Some(&trash_icon_img));
         // trash_button.add_css_class("footer-container-button");
 
-
         // trash_button.connect_clicked(clone!(@strong sender => move |_| {
         //     let _ =  sender.output(DevicePageOutput::NextPressed);
         //   }));
         // footer_box.append(&trash_button);
-
 
         footer_box.append(&button_box);
         footer_box.append(&exit_button);
@@ -251,7 +231,23 @@ impl AsyncComponent for MachineInfo {
 
         root.append(&main_content_box);
 
-        let widgets = AppWidgets {  };
+        let model = MachineInfo { 
+            settings: init, 
+            machine_id: String::from(""), 
+            name : String::from(""),
+            icon_path: Some(String::from("")),
+            status: false,
+            icon_bytes: None
+        };
+
+        let widgets = AppWidgets {  
+            name_label : machine_name,
+            id_label : id_value,
+            profile_icon: user_profile_icon,
+            active_status_icon: active_status_icon,
+            not_active_status_icon: not_active_status_icon,
+            toast_label: toast_label,
+        };
 
         AsyncComponentParts { model, widgets }
     }
@@ -262,12 +258,55 @@ impl AsyncComponent for MachineInfo {
         sender: AsyncComponentSender<Self>,
         _root: &Self::Root,
     ) { 
+        match message {
+            InputMessage::ActiveScreen(response) => {
+                if let Some(response) = &response {
+                    self.machine_id = response.machine_id.to_owned();
+                    self.name = response.name.to_owned();
+                    self.icon_path = response.icon.to_owned();
+                    self.icon_bytes = get_image_bytes(self.icon_path.clone()).await;
+                };
+
+                let sender: relm4::Sender<InputMessage> = sender.input_sender().clone();
+                _ = init_services(sender).await;
+            },
+            InputMessage::ShowStatus(status) => {
+                self.status = status;
+            }
+        }
 
     }
 
+    fn update_view(&self, widgets: &mut Self::Widgets, sender: AsyncComponentSender<Self>) {
+        widgets.name_label.set_label(&self.name);
+        widgets.id_label.set_label(&self.machine_id);
 
+        if self.status == true {
+            if let Some(bytes) = self.icon_bytes.clone() {
+                let paintable = get_image_from_url(Some(bytes), &["device-info-status-icon"]);
+                widgets.profile_icon.set_paintable(Some(&paintable));
+                widgets.profile_icon.style_context().add_class("device-info-icon");
+            }
+        }
+        else {
+            widgets.not_active_status_icon.set_visible(true);
+            widgets.active_status_icon.set_visible(false);
+
+            widgets.toast_label.set_label(&String::from("Machine Agent not running or not internet connectivity"));
+            widgets.toast_label.set_visible(true);
+            widgets.toast_label.set_hexpand(true);
+        }
+        widgets.active_status_icon.set_visible(true);
+        widgets.not_active_status_icon.set_visible(false);
+
+        widgets.toast_label.set_visible(false);
+    }
 }
 
-fn init_services(sender: relm4::Sender<InputMessage>) {
-    println!("device info init services called..."); 
+async fn init_services(sender: relm4::Sender<InputMessage>) {
+    let sender_clone_1 = sender.clone();
+    let _ = relm4::spawn(async move {
+        let _ = machine_status_service(sender_clone_1).await;
+    });
+
 }

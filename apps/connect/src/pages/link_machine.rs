@@ -4,16 +4,12 @@ use gtk::prelude::*;
 use relm4::{
     component::{AsyncComponent, AsyncComponentParts},
     gtk::{
-        self, gdk::Display, glib::clone, pango, prelude::{ButtonExt, WidgetExt}, Button, CssProvider, STYLE_PROVIDER_PRIORITY_APPLICATION
+        self, gdk::Display, glib::clone, pango, prelude::{ButtonExt, WidgetExt}, CssProvider, STYLE_PROVIDER_PRIORITY_APPLICATION
     },
     AsyncComponentSender,
 };
-use tokio::{sync::oneshot, time::interval};
-use std::{thread::Builder, time::{Duration, Instant}};
-
+use std::{time::{Duration, Instant}};
 use crate::{handlers::provision::handler::LinkMachineHandler,settings::{Modules, WidgetConfigs}};
-
-// use crate::{services::provisionHandler::ProvisionHandler, settings::WidgetConfigs};
 
 pub struct Settings {
     pub modules: Modules,
@@ -27,6 +23,10 @@ pub struct LinkMachine {
     timer: i32,
     provision_status: bool,
     current_time: i32,
+    task: Option<relm4::prelude::adw::glib::JoinHandle<()>>,
+    g: Option<tokio::task::JoinHandle<()>>,
+    p: Option<tokio::task::JoinHandle<()>>,
+    t: Option<tokio::task::JoinHandle<()>>,
 }
 
 #[derive(Debug)]
@@ -50,6 +50,12 @@ pub enum InputMessage {
     GenerateCodeError(String),
     ProvisionSuccess,
     ShowError(String),
+    BackScreen,
+    ProvisioningTasks {
+        g: tokio::task::JoinHandle<()>,
+        p: tokio::task::JoinHandle<()>,
+        // t: tokio::task::JoinHandle<()>,
+    },
 }
 
 pub struct AppWidgets {
@@ -87,8 +93,6 @@ impl AsyncComponent for LinkMachine {
         root: Self::Root,
         sender: AsyncComponentSender<Self>,
     ) -> AsyncComponentParts<Self> {
-        println!("link machine page init...");
-
         let modules = init.modules.clone();
         let widget_configs = init.widget_configs.clone();
 
@@ -110,7 +114,6 @@ impl AsyncComponent for LinkMachine {
 
         let header_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
-            // .css_classes(["link-machine-header"])
             .css_classes(["start-screen-header-box"])
             .build();
 
@@ -122,7 +125,7 @@ impl AsyncComponent for LinkMachine {
         );
 
         let header_label = gtk::Label::builder()
-            .label("Link your Machine")
+            .label("Link Your Machine")
             .halign(gtk::Align::Start)
             .build();
 
@@ -131,16 +134,23 @@ impl AsyncComponent for LinkMachine {
         header_box.append(&app_icon);
         header_box.append(&header_label);
 
-        main_container.append(&header_box);
+        main_container.append(&header_box);  // main box
 
-        let header_p = gtk::Label::builder()
+        
+        let header_info_box = gtk::Box::builder()
+        .orientation(gtk::Orientation::Horizontal)
+        .css_classes(["start-header-p"])
+        .build();
+
+
+        let info_sentence = gtk::Label::builder()
             .label("Use this below code to connect this machine to your Mecha account")
-            .css_classes(["link-machine-header-label"])
+            // .css_classes(["link-machine-header-label"])
             .halign(gtk::Align::Start)
             .build();
-
-        main_content_box.append(&header_p);
-
+        
+        header_info_box.append(&info_sentence);
+        main_content_box.append(&header_info_box);
 
         let info_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
@@ -184,11 +194,9 @@ impl AsyncComponent for LinkMachine {
         // progressbar
         let progress_bar = gtk::ProgressBar::builder()
         .fraction(1.0)
-        .hexpand_set(true)
         .hexpand(true)
         .build();
         progress_bar.style_context().add_class("custom-progress-bar");
-        // progress_bar.set_visible(true);
 
         progress_box.append(&progress_bar);
 
@@ -224,7 +232,6 @@ impl AsyncComponent for LinkMachine {
         step1_label_box.append(&step1_label);
 
         let step1_text = gtk::Label::builder()
-            // .label("Sign up on mecha.so")
             .label("Create a new account on Mecha, if not signed up earlier.")
             .css_classes(["link-machine-steps-text"])
             .wrap(true)
@@ -319,24 +326,11 @@ impl AsyncComponent for LinkMachine {
         back_button.add_css_class("footer-container-button");
 
         back_button.connect_clicked(clone!(@strong sender => move |_| {
-          let _ =  sender.output(LinkMachineOutput::BackPressed);
-        }));
-
-        // TEMP : REMVOE THIS LATER - NOT IN UI
-        let next_icon_img: gtk::Image = get_image_from_path(widget_configs.footer.next_icon, &[]);
-        let next_button = Button::new();
-        next_button.set_child(Some(&next_icon_img));
-        next_button.add_css_class("footer-container-button");
-
-        next_button.connect_clicked(clone!(@strong sender => move |_| {
-          let _ =  sender.output(LinkMachineOutput::NextPressed);
+            let _ =  sender.input_sender().send(InputMessage::BackScreen);
         }));
 
         back_button_box.append(&back_button);
         footer_box.append(&back_button_box);
-
-        // TEMP : REMVOE THIS LATER
-        footer_box.append(&next_button);
 
         footer_content_box.append(&footer_box);
         main_content_box.append(&footer_content_box);
@@ -351,6 +345,10 @@ impl AsyncComponent for LinkMachine {
             provision_status: false,
             progress: 0.0,
             current_time: 0,
+            task: None,
+            g: None,
+            p: None,
+            t: None
         };
 
         let widgets = AppWidgets {
@@ -367,58 +365,25 @@ impl AsyncComponent for LinkMachine {
         sender: AsyncComponentSender<Self>,
         _root: &Self::Root,
     ) {
-        // println!("Inside update {:?}", message);
-        let seconds = Duration::from_secs(10);
-        let start = Instant::now();
-
         match message {
             InputMessage::ActiveScreen(text) => {
                 let sender: relm4::Sender<InputMessage> = sender.input_sender().clone();
-                let result = init_services(sender).await;
+                let relm_task: relm4::prelude::adw::glib::JoinHandle<()> = relm4::spawn_local(async move {
+                    let _ = init_services(sender).await;
+
+                });
+                self.task = Some(relm_task)
             },
             InputMessage::ProvisionSuccess => {
-                println!("ProvisionSuccess -> move to NEXT..");
-             let _ =  sender.output(LinkMachineOutput::NextPressed);
+                self.task.as_ref().unwrap().abort();
+                // self.t.as_ref().unwrap().abort();
+                let _ =  sender.output(LinkMachineOutput::NextPressed);
             },
             InputMessage::CodeChanged(code) => {
-                println!("inside InputMessage code change");
                 self.connect_code = code.clone();
-
-
-                let mut total_time = 1.0;
-                let mut fraction_value = 0.01;
-                let mut g_code_interval = interval(Duration::from_secs(1)); 
-
-
-                // loop {
-
-                //     g_code_interval.tick().await;
-
-                //     total_time =  total_time.to_owned() - fraction_value.to_owned();
-                //     // self.progress = total_time.clone();
-                //     // println!("total_time {:?} ", total_time.to_owned());
-
-                //     if total_time == 0.0 {
-                //         total_time = 1.0;
-                //     }
-                // }
-                
-                // // for _ in 0..60 {
-                // //     // tokio::spawn(future)
-                // //     fraction_value = total_time-0.01;
-                // //     println!("fraction_value {:?} ", fraction_value.to_owned());
-                // //     self.progress = fraction_value.clone();
-
-                // //     if fraction_value == 0.0 {
-                // //         fraction_value = total_time.clone();
-                // //     }
-        
-                // // }
-
-
             },
-            InputMessage::UpdateTimer(value) => {
-                self.progress = value.clone();
+            InputMessage::UpdateTimer(time_fraction) => {
+                self.progress = time_fraction.clone();
             }
             InputMessage::GenerateCodeError(error) => {
                 println!("Generate code error: {:?} ", error);
@@ -427,53 +392,36 @@ impl AsyncComponent for LinkMachine {
             InputMessage::ShowError(text) => {
                 println!("Error to be shown:: {:?} ", text);
                 let _ =  sender.output(LinkMachineOutput::ShowError);
+            },
+            InputMessage::BackScreen => {
+                self.task.as_ref().unwrap().abort();
+                self.g.as_ref().unwrap().abort();
+                self.p.as_ref().unwrap().abort();
+                // self.t.as_ref().unwrap().abort();
+
+                let _ =  sender.output(LinkMachineOutput::BackPressed);
+            },
+            InputMessage::ProvisioningTasks { g, p } => {
+                self.g = Some(g);
+                self.p = Some(p);
+                // self.t = Some(t);
             }
             
         }
     }
 
     fn update_view(&self, widgets: &mut Self::Widgets, sender: AsyncComponentSender<Self>) {
-        println!("update_view {:?} ", self.connect_code);
-        println!("progress {:?} ", self.progress.to_owned());
         widgets.connect_code_label.set_label(&self.connect_code);
-
         widgets.progress_bar.set_fraction(self.progress);
-
-        // widgets.spinner.set_spinning(true);
-
-        // let result = update_progress(sender);
-        // let mut remaining_time = 1.0;
-  
-        // let mut g_code_interval = interval(Duration::from_secs(1)); 
-
-
     }
   
 }
 
 async fn init_services(sender: relm4::Sender<InputMessage>) {
-    println!("init services called..."); 
-
     let sender_clone_1 = sender.clone();
     let mut link_machine_handler = LinkMachineHandler::new();
    
-    let _ = relm4::spawn(async move {
+    let _ = relm4::spawn_local(async move {
         let _ = link_machine_handler.run(sender_clone_1).await;
     });
-}
-
-async fn update_progress(sender: relm4::Sender<InputMessage>) {
-    // let mut time_interval = time::interval(Duration::from_secs(1)); // Tick every second within the 60 seconds
-
-    // let total_time = Duration::from_secs_f64(1.0); // Total time is 1.0 seconds
-    // let mut remaining_time = 1.0;
-
-    // _= time_interval.tick() => {
-    //     remaining_time -= 0.01;
-    //     println!("Time fraction remaining: {:.2}", remaining_time);
-    //     // sender
-    //     if remaining_time <= 0.0 {
-    //         remaining_time = 1.0; // Reset remaining time to 1.0
-    //     }
-    // }
 }

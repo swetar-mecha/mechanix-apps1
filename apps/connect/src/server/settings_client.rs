@@ -32,17 +32,16 @@ impl SettingsClient {
             Ok(Self { client }) 
     }
 
-    pub async fn get_settings_data(&mut self, key: String) -> Result<GetSettingsResponse, Box<dyn std::error::Error>> {
+    pub async fn get_settings_data(&mut self, key: String) -> Result<GetSettingsResponse> {
         let request = tonic::Request::new( GetSettingsRequest{key: key});
 
         let response = match self.client.get(request).await {
             Ok(response) => {
-                println!("SettingsClient-get_settings_data: {:?} ", response);
+                println!("SettingsClient - get_settings_data: {:?} ", response);
                 response.into_inner()
             },
             Err(e) => {
-                eprintln!("SettingsClient-get_settings_data-error:: {:?} ", e);
-                return Err(Box::new(e));
+                bail!(e);
             },
         };
         Ok(response)
